@@ -1,21 +1,374 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Hello World</title>
-    <url>/2022/11/06/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+    <title>CentOs7 安装 MySQL5.7</title>
+    <url>/2022/11/10/CentOS7%E5%AE%89%E8%A3%85MySQL5.7/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>记录一个没有坑的，在CentOS7环境下安装MySQL5.7的流程。</p>
+<span id="more"></span>
 
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<h2 id="在服务器上准备好mysql5-7的压缩包"><a href="#在服务器上准备好mysql5-7的压缩包" class="headerlink" title="在服务器上准备好mysql5.7的压缩包"></a>在服务器上准备好mysql5.7的压缩包</h2><p>注意针对不同的操作系统选择对应的包，我选择的是<code>mysql-5.7.26-linux-glibc2.12-x86_64.tar.gz</code></p>
+<h2 id="解压安装"><a href="#解压安装" class="headerlink" title="解压安装"></a>解压安装</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tar -zxvf mysql-5.7.26-linux-glibc2.12-x86_64.tar.gz #解压</span><br><span class="line"></span><br><span class="line">mv mysql-5.7.26-linux-glibc2.12-x86_64 /usr/local/mysql #启动目录、重命名</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+
+
+<h2 id="创建mysql用户-组"><a href="#创建mysql用户-组" class="headerlink" title="创建mysql用户/组"></a>创建mysql用户/组</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /usr/local/mysql</span><br><span class="line"></span><br><span class="line">mkdir data</span><br><span class="line"></span><br><span class="line">groupadd mysql</span><br><span class="line"></span><br><span class="line">useradd -g mysql mysql -s /sbin/nologin -d /usr/local/mysql</span><br><span class="line"></span><br><span class="line">chown -R mysql:mysql /usr/local/mysql #将mysql目录所属用户指定为mysql用户</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="初始化mysql"><a href="#初始化mysql" class="headerlink" title="初始化mysql"></a>初始化mysql</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">bin/mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data</span><br></pre></td></tr></table></figure>
+
+<p><font color=red>记住上面命令产生的临时密码，后面会用到。</font></p>
+<h3 id="创建RSA-private-key："><a href="#创建RSA-private-key：" class="headerlink" title="创建RSA private key："></a>创建RSA private key：</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">bin/mysql_ssl_rsa_setup --datadir=/usr/local/mysql/data</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cp -rf /usr/local/mysql/support-files/mysql.server /etc/init.d/mysql</span><br><span class="line"></span><br><span class="line">cp /etc/my.cnf /etc/my.cnf.bak</span><br><span class="line"></span><br><span class="line">vim /etc/my.cnf</span><br></pre></td></tr></table></figure>
+
+<p>配置文件写法</p>
+<figure class="highlight properties"><table><tr><td class="code"><pre><span class="line"><span class="attr">[mysqld]</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">#datadir=/var/lib/mysql:wq!</span></span><br><span class="line"><span class="comment">#socket=/var/lib/mysql/mysql.sock</span></span><br><span class="line"></span><br><span class="line"><span class="attr">character_set_server</span>=<span class="string">utf8</span></span><br><span class="line"></span><br><span class="line"><span class="attr">basedir</span>=<span class="string">/usr/local/mysql</span></span><br><span class="line"></span><br><span class="line"><span class="attr">datadir</span>=<span class="string">/usr/local/mysql/data</span></span><br><span class="line"></span><br><span class="line"><span class="attr">port</span>=<span class="string">3306</span></span><br><span class="line"></span><br><span class="line"><span class="attr">socket</span>=<span class="string">/tmp/mysql.sock</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="启动mysql"><a href="#启动mysql" class="headerlink" title="启动mysql"></a>启动mysql</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">service mysql start 开启服务</span><br></pre></td></tr></table></figure>
+
+<p>其他相关命令：</p>
+<p>service mysql stop 停止服务</p>
+<p>service mysql status 查看状态</p>
+<p>service mysql restart 重启服务</p>
+<h2 id="连接mysql并设置root密码"><a href="#连接mysql并设置root密码" class="headerlink" title="连接mysql并设置root密码"></a>连接mysql并设置root密码</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /usr/local/mysql/bin</span><br><span class="line"></span><br><span class="line">./mysql -u root -p</span><br></pre></td></tr></table></figure>
+
+<p>[输入临时密码,回车]</p>
+<h3 id="设置root用户密码"><a href="#设置root用户密码" class="headerlink" title="设置root用户密码"></a>设置root用户密码</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">set password for &#x27;root&#x27;@&#x27;localhost&#x27; =password(&#x27;&lt;你的密码&gt;&#x27;);</span><br><span class="line"></span><br><span class="line">grant all privileges on *.* to &#x27;root&#x27;@&#x27;%&#x27; identified by &#x27;&lt;你的密码&gt;&#x27;;</span><br><span class="line"></span><br><span class="line">flush privileges ;</span><br><span class="line"></span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="设置mysql服务自开机启动"><a href="#设置mysql服务自开机启动" class="headerlink" title="设置mysql服务自开机启动"></a>设置mysql服务自开机启动</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">chkconfig mysql on</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="配置mysql环境变量"><a href="#配置mysql环境变量" class="headerlink" title="配置mysql环境变量"></a>配置mysql环境变量</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vim /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>配置文件</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">export MYSQL_HOME=/usr/local/mysql</span><br><span class="line">export PATH=$PATH:$JAVA_HOME/bin:$MYSQL_HOME/bin</span><br></pre></td></tr></table></figure>
+
+<p>:wq保存退出</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">source /etc/profile #使之立即生效</span><br></pre></td></tr></table></figure>
+
 ]]></content>
+      <categories>
+        <category>环境配置</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>CentOS</tag>
+        <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SkyWalking部署流程</title>
+    <url>/2022/11/16/SkyWalking%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>项目中使用了Skywalking，记录下skywalking的部署流程，方便后续使用。</p>
+<span id="more"></span>
+
+
+
+<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>SkyWalking 架构图</p>
+<p><img src="https://files.catbox.moe/xxdu5z.png"></p>
+<p>整个架构分成四部分：</p>
+<p>1、上部分Agent ：负责从应用中，收集链路信息，发送给 SkyWalking OAP 服务器；</p>
+<p>2、下部分 SkyWalking OAP ：负责接收Agent发送的Tracing数据信息，然后进行分析(Analysis Core)，存储到外部存储器(Storage)，最终提供查询(Query)功能；</p>
+<p>3、右部分Storage：Tracing数据存储，目前支持ES、MySQL、Sharding Sphere、TiDB、H2多种存储器，目前采用较多的是ES，主要考虑是SkyWalking开发团队自己的生产环境采用ES为主；</p>
+<p>4、左部分SkyWalking UI：负责提供控台，查看链路等等；</p>
+<!--More-->
+
+<h2 id="单机版（使用h2内置数据库）"><a href="#单机版（使用h2内置数据库）" class="headerlink" title="单机版（使用h2内置数据库）"></a>单机版（使用h2内置数据库）</h2><h3 id="步骤分解"><a href="#步骤分解" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
+<ol>
+<li>下载SkyWalking软件包</li>
+<li>搭建一个SkyWalking OAP 和 SkyWalking UI服务</li>
+<li>启动一个Spring Boot 应用，并配置SkyWalking Agent</li>
+</ol>
+</blockquote>
+<h3 id="下载官方包（不介绍手动编译）"><a href="#下载官方包（不介绍手动编译）" class="headerlink" title="下载官方包（不介绍手动编译）"></a>下载官方包（不介绍手动编译）</h3><p>尾缀带es的表示支持es，版本自行选择</p>
+<h3 id="SktWalking-OAP搭建"><a href="#SktWalking-OAP搭建" class="headerlink" title="SktWalking OAP搭建"></a>SktWalking OAP搭建</h3><p>解压:（tar -zxvf xxxxx.tar.gz）</p>
+<p>存放到指定位置</p>
+<blockquote>
+<p>agent         #SkyWalking Agent</p>
+<p>bin             #执行脚本</p>
+<p>config        #SkyWalking OAP Server 配置文件</p>
+<p>LICENSE</p>
+<p>licenses</p>
+<p>NOTICE</p>
+<p>oap-libs     #SkyWalking OAP Server（后面可以在这导入数据库驱动）</p>
+<p>README.txt</p>
+<p>tools</p>
+<p>webapp     #SkyWalking UI</p>
+</blockquote>
+<h3 id="启动-SkyWalking-OAP服务"><a href="#启动-SkyWalking-OAP服务" class="headerlink" title="启动 SkyWalking OAP服务"></a>启动 SkyWalking OAP服务</h3><p>进入到对应文件夹下bin目录：./startup.sh</p>
+<p>打开该脚本发现对应脚本同时打开 oapservice.sh（skywalking-oap-server） 和 webapp.sh（skywalking-web-ui）</p>
+<p>换言之，可以单独启动（后面集群配置用得到）</p>
+<p>可以查看 log 目录下日志文件</p>
+<p>（以下端口参数皆可修改）</p>
+<p>skywalking-oap-server服务启动后会占用：11800 和 12800 两个端口；（可以在 config/application.yml  修改，这个文件里面存放 skywalking 配置，包括后面数据库修改）</p>
+<p>skywalking-web-ui服务会占用 8080 端口（可以在 webapp/webapp.yml 修改，这个配置文件可以修改ui界面的配置，后面集群配置用的到）</p>
+<blockquote>
+<p>server.port：SkyWalking UI服务端口，默认是8080；<br>collector.ribbon.listOfServers：SkyWalking OAP服务地址数组，SkyWalking UI界面的数据是通过请求SkyWalking OAP服务来获得（后面集群配置用的到）</p>
+</blockquote>
+<h3 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h3><h4 id="Jar包"><a href="#Jar包" class="headerlink" title="Jar包"></a>Jar包</h4><ol>
+<li><p>在启动程序前加一个-javaagent 参数也可完成对程序的跟踪；</p>
+</li>
+<li><p>编写shell脚本</p>
+</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/sh</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">SkyWalking Agent配置</span></span><br><span class="line">export SW_AGENT_NAME=11-springboot #Agent名字,一般使用`spring.application.name` </span><br><span class="line">export SW_AGENT_COLLECTOR_BACKEND_SERVICES=127.0.0.1:11800 #配置 Collector 地址。</span><br><span class="line">export SW_AGENT_SPAN_LIMIT=2000 #配置链路的最大Span数量，默认为 300。</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动 skywalking 探针</span></span><br><span class="line">export JAVA_AGENT=-javaagent:/usr/local/apache-skywalking-apm-bin/agent/skywalking-agent.jar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">jar启动</span></span><br><span class="line">java $JAVA_AGENT -jar 11-springboot-1.0.0.jar</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="IDEA"><a href="#IDEA" class="headerlink" title="IDEA"></a>IDEA</h4><p><img src="https://files.catbox.moe/v3rr8j.png"></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">-javaagent:D:/DevOps/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=diandian-starter,collector.backend_service=82.157.140.94:11800,plugin.toolkit.log.grpc.reporter.server_host=82.157.140.94,plugin.toolkit.log.grpc.reporter.server_port=11800</span><br><span class="line"></span><br><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=82.157.140.94:11800;SW_AGENT_NAME=diandian-starter</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="集成外部数据库（mysql）"><a href="#集成外部数据库（mysql）" class="headerlink" title="集成外部数据库（mysql）"></a>集成外部数据库（mysql）</h2><p>修改 config/application.yml 文件，将 storage 设置为 mysql</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">storage:</span></span><br><span class="line">  <span class="attr">selector:</span> <span class="string">$&#123;SW_STORAGE:mysql&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>填写 mysql 用户名密码</p>
+<p>按照单机版启动即可</p>
+<h2 id="集群版"><a href="#集群版" class="headerlink" title="集群版"></a>集群版</h2><p>由于skywalking只是负责监控程序，进行分布式链路跟踪的，所以skywalking OAP如果宕机了，完全不会影响正常业务。</p>
+<p>Skywalking 集群式将SkyWalking oap作为一个服务注册到 nacos（或其他注册中心，这里不做描述） 上。</p>
+<p>只要skywalking没有全部宕机，保证有一个skywalking oap在运行，就能继续运行</p>
+<h3 id="准备前提"><a href="#准备前提" class="headerlink" title="准备前提"></a>准备前提</h3><blockquote>
+<ol>
+<li>一个Nacos 或 集群</li>
+<li>一个数据库（mysql）或集群</li>
+<li>两个以上的 skywalking oap</li>
+<li>一个UI 或 集群</li>
+</ol>
+</blockquote>
+<h3 id="步骤分解-1"><a href="#步骤分解-1" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
+<ol>
+<li>解压两份以上 skywalking</li>
+<li>修改 application.yml 文件</li>
+<li>配置 UI（webapp.yml）</li>
+<li>wkywalking 启动</li>
+<li>程序启动</li>
+</ol>
+</blockquote>
+<h3 id="1-解压两份skywalking"><a href="#1-解压两份skywalking" class="headerlink" title="1.解压两份skywalking"></a>1.解压两份skywalking</h3><h3 id="2-修改-application-yml-文件"><a href="#2-修改-application-yml-文件" class="headerlink" title="2.修改 application.yml 文件"></a>2.修改 application.yml 文件</h3><p>/config/application.yml</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">cluster:</span></span><br><span class="line">  	<span class="attr">selector:</span> <span class="string">$&#123;SW_CLUSTER:nacos&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">nacos:</span> </span><br><span class="line">	<span class="attr">serviceName:</span> <span class="string">$&#123;SW_SERVICE_NAME:&quot;SkyWalking_OAP_Cluster&quot;&#125;</span> </span><br><span class="line">	<span class="attr">hostPort:</span> <span class="string">$&#123;SW_CLUSTER_NACOS_HOST_PORT:localhost:8848&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>第一台</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12801&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11801&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>第二台</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12802&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11802&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-配置UI"><a href="#3-配置UI" class="headerlink" title="3.配置UI"></a>3.配置UI</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">listOfServers:</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:12801,127.0.0.1:12802</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-启动-skywalking"><a href="#4-启动-skywalking" class="headerlink" title="4.启动 skywalking"></a>4.启动 skywalking</h3><p>启动两个以上oap，一个及以上UI</p>
+<h3 id="5-程序启动"><a href="#5-程序启动" class="headerlink" title="5.程序启动"></a>5.程序启动</h3><h4 id="Jar包启动"><a href="#Jar包启动" class="headerlink" title="Jar包启动"></a>Jar包启动</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">java -javaagent:xxxxx/agent/skywalking-agent.jar</span><br><span class="line">-Dskywalking.agent.service_name=gateway</span><br><span class="line">-Dskywalking.collector.backend_service=192.168.172.128:11801,192.168.172.128:11802</span><br><span class="line">-jar 你的jar包名</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="IDEA启动"><a href="#IDEA启动" class="headerlink" title="IDEA启动"></a>IDEA启动</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=192.168.172.128:11801,192.168.172.128:11802;SW_AGENT_NAME=11-springboot-idea</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>环境配置</category>
+      </categories>
+      <tags>
+        <tag>运维</tag>
+        <tag>微服务</tag>
+        <tag>中间件</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Web应用上线全流程</title>
+    <url>/2022/11/22/Web%E5%BA%94%E7%94%A8%E4%B8%8A%E7%BA%BF%E5%85%A8%E6%B5%81%E7%A8%8B/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在学习项目的时候，发现了一套相对完整好用的Web应用上线流程。</p>
+<p>记录下来方便以后直接copy~</p>
+<span id="more"></span>
+
+
+
+<h2 id="编写一个完整的Web项目"><a href="#编写一个完整的Web项目" class="headerlink" title="编写一个完整的Web项目"></a>编写一个完整的Web项目</h2><p>上线和本地测试有所不同，要自己检查好有关网络映射相关的代码。</p>
+<h2 id="购买云服务器"><a href="#购买云服务器" class="headerlink" title="购买云服务器"></a>购买云服务器</h2><p>有条件也可以自己搭建一台服务器，但是只推荐用来学习，不推荐用来实际使用。</p>
+<p>因为有很多细节问题打磨的没有云服务厂商好。</p>
+<p>国内常见云服务厂商有以下三个：</p>
+<ul>
+<li>腾讯云</li>
+<li>阿里云</li>
+<li>华为云</li>
+</ul>
+<p>1核2G基本够搭一个常见的Web应用、2核4G更好。</p>
+<p>注意：购买的服务器需要带有公网IP，方便后期外网访问、配置域名和HTTPS等等。</p>
+<h2 id="添加用户及权限"><a href="#添加用户及权限" class="headerlink" title="添加用户及权限"></a>添加用户及权限</h2><ul>
+<li>root权限太大，不安全，创建使用普通用户</li>
+<li><code>useradd &lt;username&gt; </code>创建用户</li>
+<li>给用户添加root权限<ul>
+<li>CentOS: <code>visudo</code>，于92行附近，添加<code>&lt;username&gt; ALL=(ALL) NOPASSWD:ALL</code></li>
+<li>Ubuntu: <code>sudo usermod -aG sudo &lt;username&gt;</code> </li>
+</ul>
+</li>
+</ul>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><ul>
+<li><p>照着官网复制命令</p>
+</li>
+<li><p>如果是Ubuntu，不是root用户</p>
+<ul>
+<li>需要登录指定用户</li>
+<li>使用命令 <code>sudo usermod -aG docker $USER</code></li>
+</ul>
+</li>
+<li><p>使用基础镜像创建实例容器（包含一些基础设施：linux、mysql、jdk等）</p>
+<p>  <code>docker load -i &lt;镜像文件名&gt;</code></p>
+</li>
+<li><p><code>docker run -p &lt;应用端口&gt;:&lt;实际端口&gt; --name &lt;实例名&gt; -itd &lt;镜像名&gt;</code></p>
+</li>
+<li><p>接下来的所有设施都在容器里搭建</p>
+</li>
+<li><p>上述流程也可用 DockerFile 或 docker-compose 的方式解决，感兴趣可以自行了解。</p>
+</li>
+</ul>
+<h2 id="基础设施"><a href="#基础设施" class="headerlink" title="基础设施"></a>基础设施</h2><h3 id="①-mysql"><a href="#①-mysql" class="headerlink" title="① mysql"></a>① mysql</h3><ul>
+<li><p>更新源：<code>sudo apt-get update</code></p>
+</li>
+<li><p>安装：<code>sudo apt-get install mysql-server</code></p>
+</li>
+<li><p>权限：<code>sudo usermod -d /var/lib/mysql/ mysql</code></p>
+</li>
+<li><p>启动：<code>sudo service mysql start</code></p>
+</li>
+<li><p>进入mysql，改密码：</p>
+  <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">set password for &#x27;root&#x27;@&#x27;localhost&#x27; =password(&#x27;&lt;你的密码&gt;&#x27;);</span><br><span class="line"></span><br><span class="line">grant all privileges on *.* to &#x27;root&#x27;@&#x27;%&#x27; identified by &#x27;&lt;你的密码&gt;*.&#x27;;</span><br><span class="line"></span><br><span class="line">flush privileges ;</span><br><span class="line"></span><br><span class="line">exit</span><br></pre></td></tr></table></figure></li>
+<li><p>建表</p>
+</li>
+</ul>
+<h3 id="②-JDK"><a href="#②-JDK" class="headerlink" title="② JDK"></a>② JDK</h3><ul>
+<li><code>sudo apt-get install openjdk-8-jdk</code></li>
+</ul>
+<h2 id="项目打包"><a href="#项目打包" class="headerlink" title="项目打包"></a>项目打包</h2><h3 id="后端打包"><a href="#后端打包" class="headerlink" title="后端打包"></a>后端打包</h3><p>配置项目的pom.xml，否则会报错</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">packaging</span>&gt;</span>jar<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="comment">&lt;!--这里写上main方法所在类的路径--&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">mainClass</span>&gt;</span>con.xxx.你的主类名<span class="tag">&lt;/<span class="name">mainClass</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">goal</span>&gt;</span>repackage<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>maven clean -&gt; package 上传 jar 包</p>
+<h3 id="前端打包"><a href="#前端打包" class="headerlink" title="前端打包"></a>前端打包</h3><ul>
+<li><p>配置请求的域名，否则客户端访问不到，因为客户端代码是加载到用户机器上执行的。</p>
+<p>  127.0.0.1 / localhost / 内网IP 修改为 实际IP 或 域名</p>
+</li>
+<li><p>如果配置了https，需要改为https协议，websocket要从ws改为wss</p>
+</li>
+<li><p>将代码打包<code>npm run build</code>生成dist文件夹，里面是所有的静态资源</p>
+</li>
+<li><p>把静态资源放到nginx中配置好的映射文件夹下面</p>
+</li>
+</ul>
+<h2 id="配置Nginx"><a href="#配置Nginx" class="headerlink" title="配置Nginx"></a>配置Nginx</h2><ul>
+<li>/etc/nginx/nginx.conf</li>
+<li>前后端部署在一台机器上</li>
+<li>带https</li>
+</ul>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">user</span> www-data;</span><br><span class="line"><span class="attribute">worker_processes</span> auto;</span><br><span class="line"><span class="attribute">pid</span> /run/nginx.pid;</span><br><span class="line"><span class="attribute">include</span> /etc/nginx/modules-enabled/<span class="regexp">*.conf</span>;</span><br><span class="line"></span><br><span class="line"><span class="section">events</span> &#123;</span><br><span class="line">    <span class="attribute">worker_connections</span> <span class="number">768</span>;</span><br><span class="line">    <span class="comment"># multi_accept on;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">http</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">sendfile</span> <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">tcp_nopush</span> <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">tcp_nodelay</span> <span class="literal">on</span>;</span><br><span class="line">    <span class="attribute">keepalive_timeout</span> <span class="number">65</span>;</span><br><span class="line">    <span class="attribute">types_hash_max_size</span> <span class="number">2048</span>;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">include</span> /etc/nginx/mime.types;</span><br><span class="line">    <span class="attribute">default_type</span> application/octet-stream;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">ssl_protocols</span> TLSv1 TLSv1.<span class="number">1</span> TLSv1.<span class="number">2</span> TLSv1.<span class="number">3</span>; <span class="comment"># Dropping SSLv3, ref: POODLE</span></span><br><span class="line">    <span class="attribute">ssl_prefer_server_ciphers</span> <span class="literal">on</span>;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">access_log</span> /var/log/nginx/access.log;</span><br><span class="line">    <span class="attribute">error_log</span> /var/log/nginx/<span class="literal">error</span>.log;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">gzip</span> <span class="literal">on</span>;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">include</span> /etc/nginx/conf.d/<span class="regexp">*.conf</span>;</span><br><span class="line">    <span class="attribute">include</span> /etc/nginx/sites-enabled/*;</span><br><span class="line"></span><br><span class="line">     <span class="section">server</span> &#123;</span><br><span class="line">         <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">         <span class="attribute">server_name</span> xxx.com;	<span class="comment"># 你的域名</span></span><br><span class="line">         <span class="attribute">rewrite</span><span class="regexp"> ^(.*)$</span> https://<span class="variable">$&#123;server_name&#125;</span><span class="variable">$1</span> <span class="literal">permanent</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">    <span class="section">server</span> &#123;</span><br><span class="line">        <span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br><span class="line">        <span class="attribute">server_name</span> xxx.com;	<span class="comment"># 你的域名</span></span><br><span class="line">        <span class="attribute">ssl_certificate</span>   cert/xxx.pem;	<span class="comment"># HTTPS pem文件</span></span><br><span class="line">        <span class="attribute">ssl_certificate_key</span>  cert/xxx.key; <span class="comment"># HTTPS key文件</span></span><br><span class="line">        <span class="attribute">ssl_session_timeout</span> <span class="number">5m</span>;</span><br><span class="line">        <span class="attribute">ssl_ciphers</span> ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;</span><br><span class="line">        <span class="attribute">ssl_protocols</span> TLSv1 TLSv1.<span class="number">1</span> TLSv1.<span class="number">2</span>;</span><br><span class="line">        <span class="attribute">ssl_prefer_server_ciphers</span> <span class="literal">on</span>;</span><br><span class="line">        <span class="attribute">charset</span> utf-<span class="number">8</span>;</span><br><span class="line">        <span class="attribute">access_log</span> /var/log/nginx/access.log;</span><br><span class="line">        <span class="attribute">error_log</span> /var/log/nginx/<span class="literal">error</span>.log;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">client_max_body_size</span> <span class="number">10M</span>;</span><br><span class="line"></span><br><span class="line">        <span class="section">location</span> /api &#123;	<span class="comment"># /api可以自定义</span></span><br><span class="line">            <span class="attribute">proxy_pass</span> http://127.0.0.1:后端端口号;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="section">location</span> /websocket &#123;	<span class="comment"># /websocket 可以自定义</span></span><br><span class="line">            <span class="attribute">proxy_pass</span> http://127.0.0.1:后端端口号;</span><br><span class="line">            <span class="attribute">proxy_set_header</span> X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">            <span class="attribute">proxy_set_header</span> Host <span class="variable">$http_host</span>;</span><br><span class="line">            <span class="attribute">proxy_set_header</span> X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line"></span><br><span class="line">            <span class="attribute">proxy_http_version</span> <span class="number">1</span>.<span class="number">1</span>;</span><br><span class="line">            <span class="attribute">proxy_set_header</span> Upgrade <span class="variable">$http_upgrade</span>;</span><br><span class="line">            <span class="attribute">proxy_set_header</span> Connection <span class="string">&quot;upgrade&quot;</span>;</span><br><span class="line">            <span class="attribute">proxy_read_timeout</span>  <span class="number">36000s</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="section">location</span> / &#123;</span><br><span class="line">            <span class="attribute">root</span> /前端资源路径;</span><br><span class="line">            <span class="attribute">index</span> index.html;</span><br><span class="line">            <span class="attribute">try_files</span> <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.html;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>应用开发</category>
+      </categories>
+      <tags>
+        <tag>运维</tag>
+        <tag>服务器</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vue单页快速开发笔记</title>
+    <url>/2022/11/15/Vue%E5%8D%95%E9%A1%B5%E5%BF%AB%E9%80%9F%E5%BC%80%E5%8F%91%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>对前端以及Vue了解不多，记录了下如何快速搭建一个常见单页网站的基本框架。</p>
+<p>还有使用中的一些比较通用的模块。</p>
+<span id="more"></span>
+
+
+
+<h2 id="项目文件结构"><a href="#项目文件结构" class="headerlink" title="项目文件结构"></a>项目文件结构</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">project</span><br><span class="line"> ├── node_modules			// 依赖</span><br><span class="line"> ├── public					// favicon 和 index.html</span><br><span class="line"> ├── src</span><br><span class="line"> │   ├── assets				// 资源 (images：存一些图片, script：存一些js脚本)</span><br><span class="line"> │   ├── components			// 组件 (通用组件抽象)</span><br><span class="line"> │   ├── router				// vue-router 路由 (index.js配置路由)</span><br><span class="line"> │   ├── store				// vuex 状态存储 (index.js记录vuex存储的状态)</span><br><span class="line"> │   ├── views				// 页面</span><br><span class="line"> │   ├── App.vue			// 主页面</span><br><span class="line"> │   └── main.js			// 主函数</span><br><span class="line"> ├── babel.config.js		// 以下配置文件多数情况不用修改，现用现查</span><br><span class="line"> ├── jsconfig.json</span><br><span class="line"> ├── package-lock.json</span><br><span class="line"> ├── package.json</span><br><span class="line"> └── vue.config.js</span><br></pre></td></tr></table></figure>
+
+<p>以下所有文件路径中@表示项目根路径</p>
+<h2 id="基础框架搭建"><a href="#基础框架搭建" class="headerlink" title="基础框架搭建"></a>基础框架搭建</h2><ol>
+<li><p>设计整体布局（单页，可复用）</p>
+</li>
+<li><p><code>@/components</code> 下创建 NavBar 组件（顶部导航栏）</p>
+<ul>
+<li>BootStrap 有现成的 NavBar</li>
+<li>自定义编写结构和样式</li>
+<li>实现点击后高亮：<ul>
+<li>使用 vue-route 的 useRoute </li>
+<li>setup -&gt; routeName = compute(() =&gt; route.name) –&gt; return { routeName }</li>
+<li>template 使用 <code>:class=&quot;routeName == xxx ? &#39;高亮样式&#39; : &#39;未高亮样式&#39; &quot;</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code>App.vue</code> 导入并使用 NavBar 组件</p>
+<ol>
+<li>import NavBar from “@/components/NavBar.vue”;</li>
+<li>components: NavBar</li>
+<li>template 使用   <code>&lt;NavBar&gt;&lt;/NavBar&gt;</code></li>
+</ol>
+</li>
+<li><p><code>@/views</code> 创建页面 xxx.vue</p>
+<ul>
+<li>分好文件夹，方便后期开发</li>
+<li>有几个模块就重复几次</li>
+</ul>
+</li>
+<li><p><code>@/router/index.js</code> 配置路由</p>
+<ul>
+<li><p>path、name、components（需要提前 import xxx.vue ）</p>
+</li>
+<li><p>redirect：重定向</p>
+<ul>
+<li>根目录：’/‘</li>
+<li>不合法网页：’/:catchAll(.*)’</li>
+</ul>
+</li>
+<li><p>vue.before</p>
+</li>
+</ul>
+</li>
+<li><p><code>@/components</code> 下创建 ContentField 组件（主页内容框）</p>
+<ul>
+<li>BootStrap 有现成的 Card 组件</li>
+<li>使用 <code>div.container&gt;div.card&gt;card-body&gt;</code> 快速生成 </li>
+<li><code>&lt;slot&gt;&lt;/slot&gt;</code>  预留插槽显示对应模块的内容</li>
+<li>自定义样式</li>
+</ul>
+</li>
+<li><p>在每一页中都使用 ContentField 组件：import -&gt; components -&gt; template 使用 &lt;组件名&gt;&lt;/组件名&gt;</p>
+</li>
+</ol>
+<h2 id="常用公共模块"><a href="#常用公共模块" class="headerlink" title="常用公共模块"></a>常用公共模块</h2><h3 id="vue-router"><a href="#vue-router" class="headerlink" title="vue-router"></a>vue-router</h3><p>路由组件，负责解析你输入的路径并返回给指定的页面。</p>
+<p>主要在<code>@/router/index.js</code>下编写路由组件</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 导入创建路由需要使用的组件</span></span><br><span class="line"><span class="keyword">import</span> &#123; createRouter, createWebHistory &#125; <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span></span><br><span class="line"><span class="comment">// 导入要路由的vue页面</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">XXView</span> <span class="keyword">from</span> <span class="string">&#x27;@/views/modelA/XXView&#x27;</span></span><br><span class="line"><span class="comment">// 用作权限控制，状态判断（登录态等）</span></span><br><span class="line"><span class="keyword">import</span> store <span class="keyword">from</span> <span class="string">&#x27;@/store/index&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> routes = [</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">path</span>: <span class="string">&quot;/&quot;</span>,			<span class="comment">// 路径</span></span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;home&quot;</span>,		<span class="comment">// 名字</span></span><br><span class="line">    <span class="attr">redirect</span>: <span class="string">&quot;/pk/&quot;</span>,	<span class="comment">// 重定向</span></span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">path</span>: <span class="string">&quot;/pagepath/&quot;</span>,</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;pk_index&quot;</span>,</span><br><span class="line">    <span class="attr">component</span>: <span class="title class_">PKIndexView</span>,	<span class="comment">// 实际组件</span></span><br><span class="line">    <span class="attr">meta</span>: &#123;					<span class="comment">// 额外定义的附带数据（如是否验证登录态）</span></span><br><span class="line">      <span class="attr">requestAuth</span>: <span class="literal">true</span>,</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">path</span>: <span class="string">&quot;/404/&quot;</span>,			<span class="comment">// 404页面</span></span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;404&quot;</span>,</span><br><span class="line">    <span class="attr">component</span>: <span class="title class_">NotFound</span>,</span><br><span class="line">    <span class="attr">meta</span>: &#123;</span><br><span class="line">      <span class="attr">requestAuth</span>: <span class="literal">false</span>,</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">path</span>: <span class="string">&quot;/:catchAll(.*)&quot;</span>,	<span class="comment">// 拦截其他不合法的路径</span></span><br><span class="line">    <span class="attr">redirect</span>: <span class="string">&quot;/404/&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">]</span><br><span class="line"><span class="comment">// 真正创建路由</span></span><br><span class="line"><span class="keyword">const</span> router = <span class="title function_">createRouter</span>(&#123;</span><br><span class="line">  <span class="attr">history</span>: <span class="title function_">createWebHistory</span>(),</span><br><span class="line">  routes</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 每次请求前执行，这里用作登录态判断</span></span><br><span class="line">router.<span class="title function_">beforeEach</span>(<span class="function">(<span class="params">to, <span class="keyword">from</span>, next</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (登录态条件) &#123;</span><br><span class="line">    <span class="comment">// 跳转到登录页面</span></span><br><span class="line">    <span class="title function_">next</span>(&#123;<span class="attr">name</span>: <span class="string">&#x27;登录页面的name&#x27;</span>&#125;)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_">next</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 导出才能背其他组件所使用</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> router</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="vuex"><a href="#vuex" class="headerlink" title="vuex"></a>vuex</h3><p>全局状态记录组件，一般用来记录一些需要在全局使用的状态变量。</p>
+<p>除了变量，他还封装了一些函数用来操作这些变量，详见代码。</p>
+<p>主要在<code>@/vuex/index.js</code>下编写状态记录</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createStore &#125; <span class="keyword">from</span> <span class="string">&#x27;vuex&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ModuleUser</span> <span class="keyword">from</span> <span class="string">&#x27;./user&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">createStore</span>(&#123;</span><br><span class="line">  <span class="attr">state</span>: &#123;&#125;,</span><br><span class="line">  <span class="attr">getters</span>: &#123;&#125;,		<span class="comment">// 暂时没用上</span></span><br><span class="line">  <span class="attr">mutations</span>: &#123;&#125;,	<span class="comment">// 同步函数集合，在外部需要使用store.commit(&#x27;函数名&#x27;, 入参)来调用</span></span><br><span class="line">  <span class="attr">actions</span>: &#123;&#125;,		<span class="comment">// 异步函数集合，在外部需要使用store.dispatch(&#x27;函数名&#x27;, 入参)来调用</span></span><br><span class="line">  <span class="attr">modules</span>: &#123;		<span class="comment">// 编写一些子模块，放在这里统一管理</span></span><br><span class="line">    <span class="attr">user</span>: <span class="title class_">ModuleUser</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> $ <span class="keyword">from</span> <span class="string">&#x27;jquery&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">    <span class="attr">state</span>: &#123;</span><br><span class="line">        <span class="attr">id</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">getters</span>: &#123;&#125;,</span><br><span class="line">    <span class="attr">mutations</span>: &#123;</span><br><span class="line">        <span class="title function_">updateUser</span>(<span class="params">state, user</span>) &#123;</span><br><span class="line">            state.<span class="property">id</span> = user.<span class="property">id</span>;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="title function_">updateToken</span>(<span class="params">state, token</span>) &#123;</span><br><span class="line">            state.<span class="property">token</span> = token;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="title function_">logout</span>(<span class="params">state</span>) &#123;</span><br><span class="line">            state.<span class="property">id</span> = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">actions</span>: &#123;</span><br><span class="line">        <span class="title function_">login</span>(<span class="params">context, data</span>) &#123;</span><br><span class="line">            context.<span class="title function_">commit</span>(<span class="string">&quot;updateToken&quot;</span>, res.<span class="property">token</span>);</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="title function_">getinfo</span>(<span class="params">context, data</span>) &#123;</span><br><span class="line">            context.<span class="title function_">commit</span>(<span class="string">&quot;updateUser&quot;</span>, &#123;</span><br><span class="line">                ...res,</span><br><span class="line">                <span class="attr">is_login</span>: <span class="literal">true</span>,</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="title function_">logout</span>(<span class="params">context</span>) &#123;</span><br><span class="line">            context.<span class="title function_">commit</span>(<span class="string">&quot;logout&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">modules</span>: &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Web前端</category>
+      </categories>
+      <tags>
+        <tag>前端</tag>
+        <tag>Vue</tag>
+      </tags>
   </entry>
 </search>

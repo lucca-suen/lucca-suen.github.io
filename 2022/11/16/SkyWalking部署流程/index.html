@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.svg">
+  <link rel="mask-icon" href="/images/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"luccas.top","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言项目中使用了Skywalking，记录下skywalking的部署流程，方便后续使用。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SkyWalking部署流程">
+<meta property="og:url" content="http://luccas.top/2022/11/16/SkyWalking%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B/index.html">
+<meta property="og:site_name" content="Lucca&#39;s Blog">
+<meta property="og:description" content="前言项目中使用了Skywalking，记录下skywalking的部署流程，方便后续使用。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://files.catbox.moe/xxdu5z.png">
+<meta property="og:image" content="https://files.catbox.moe/v3rr8j.png">
+<meta property="article:published_time" content="2022-11-15T16:11:36.000Z">
+<meta property="article:modified_time" content="2022-11-22T05:51:16.187Z">
+<meta property="article:author" content="Lucca Suen">
+<meta property="article:tag" content="运维">
+<meta property="article:tag" content="微服务">
+<meta property="article:tag" content="中间件">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://files.catbox.moe/xxdu5z.png">
+
+<link rel="canonical" href="http://luccas.top/2022/11/16/SkyWalking%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>SkyWalking部署流程 | Lucca's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lucca's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">hello world</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://luccas.top/2022/11/16/SkyWalking%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Lucca Suen">
+      <meta itemprop="description" content="苦等预言家 不如独立思考">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lucca's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SkyWalking部署流程
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-11-16 00:11:36" itemprop="dateCreated datePublished" datetime="2022-11-16T00:11:36+08:00">2022-11-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-11-22 13:51:16" itemprop="dateModified" datetime="2022-11-22T13:51:16+08:00">2022-11-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" itemprop="url" rel="index"><span itemprop="name">环境配置</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>3.4k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>3 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>项目中使用了Skywalking，记录下skywalking的部署流程，方便后续使用。</p>
+<span id="more"></span>
+
+
+
+<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>SkyWalking 架构图</p>
+<p><img src="https://files.catbox.moe/xxdu5z.png"></p>
+<p>整个架构分成四部分：</p>
+<p>1、上部分Agent ：负责从应用中，收集链路信息，发送给 SkyWalking OAP 服务器；</p>
+<p>2、下部分 SkyWalking OAP ：负责接收Agent发送的Tracing数据信息，然后进行分析(Analysis Core)，存储到外部存储器(Storage)，最终提供查询(Query)功能；</p>
+<p>3、右部分Storage：Tracing数据存储，目前支持ES、MySQL、Sharding Sphere、TiDB、H2多种存储器，目前采用较多的是ES，主要考虑是SkyWalking开发团队自己的生产环境采用ES为主；</p>
+<p>4、左部分SkyWalking UI：负责提供控台，查看链路等等；</p>
+<!--More-->
+
+<h2 id="单机版（使用h2内置数据库）"><a href="#单机版（使用h2内置数据库）" class="headerlink" title="单机版（使用h2内置数据库）"></a>单机版（使用h2内置数据库）</h2><h3 id="步骤分解"><a href="#步骤分解" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
+<ol>
+<li>下载SkyWalking软件包</li>
+<li>搭建一个SkyWalking OAP 和 SkyWalking UI服务</li>
+<li>启动一个Spring Boot 应用，并配置SkyWalking Agent</li>
+</ol>
+</blockquote>
+<h3 id="下载官方包（不介绍手动编译）"><a href="#下载官方包（不介绍手动编译）" class="headerlink" title="下载官方包（不介绍手动编译）"></a>下载官方包（不介绍手动编译）</h3><p>尾缀带es的表示支持es，版本自行选择</p>
+<h3 id="SktWalking-OAP搭建"><a href="#SktWalking-OAP搭建" class="headerlink" title="SktWalking OAP搭建"></a>SktWalking OAP搭建</h3><p>解压:（tar -zxvf xxxxx.tar.gz）</p>
+<p>存放到指定位置</p>
+<blockquote>
+<p>agent         #SkyWalking Agent</p>
+<p>bin             #执行脚本</p>
+<p>config        #SkyWalking OAP Server 配置文件</p>
+<p>LICENSE</p>
+<p>licenses</p>
+<p>NOTICE</p>
+<p>oap-libs     #SkyWalking OAP Server（后面可以在这导入数据库驱动）</p>
+<p>README.txt</p>
+<p>tools</p>
+<p>webapp     #SkyWalking UI</p>
+</blockquote>
+<h3 id="启动-SkyWalking-OAP服务"><a href="#启动-SkyWalking-OAP服务" class="headerlink" title="启动 SkyWalking OAP服务"></a>启动 SkyWalking OAP服务</h3><p>进入到对应文件夹下bin目录：./startup.sh</p>
+<p>打开该脚本发现对应脚本同时打开 oapservice.sh（skywalking-oap-server） 和 webapp.sh（skywalking-web-ui）</p>
+<p>换言之，可以单独启动（后面集群配置用得到）</p>
+<p>可以查看 log 目录下日志文件</p>
+<p>（以下端口参数皆可修改）</p>
+<p>skywalking-oap-server服务启动后会占用：11800 和 12800 两个端口；（可以在 config/application.yml  修改，这个文件里面存放 skywalking 配置，包括后面数据库修改）</p>
+<p>skywalking-web-ui服务会占用 8080 端口（可以在 webapp/webapp.yml 修改，这个配置文件可以修改ui界面的配置，后面集群配置用的到）</p>
+<blockquote>
+<p>server.port：SkyWalking UI服务端口，默认是8080；<br>collector.ribbon.listOfServers：SkyWalking OAP服务地址数组，SkyWalking UI界面的数据是通过请求SkyWalking OAP服务来获得（后面集群配置用的到）</p>
+</blockquote>
+<h3 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h3><h4 id="Jar包"><a href="#Jar包" class="headerlink" title="Jar包"></a>Jar包</h4><ol>
+<li><p>在启动程序前加一个-javaagent 参数也可完成对程序的跟踪；</p>
+</li>
+<li><p>编写shell脚本</p>
+</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/sh</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">SkyWalking Agent配置</span></span><br><span class="line">export SW_AGENT_NAME=11-springboot #Agent名字,一般使用`spring.application.name` </span><br><span class="line">export SW_AGENT_COLLECTOR_BACKEND_SERVICES=127.0.0.1:11800 #配置 Collector 地址。</span><br><span class="line">export SW_AGENT_SPAN_LIMIT=2000 #配置链路的最大Span数量，默认为 300。</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动 skywalking 探针</span></span><br><span class="line">export JAVA_AGENT=-javaagent:/usr/local/apache-skywalking-apm-bin/agent/skywalking-agent.jar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">jar启动</span></span><br><span class="line">java $JAVA_AGENT -jar 11-springboot-1.0.0.jar</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="IDEA"><a href="#IDEA" class="headerlink" title="IDEA"></a>IDEA</h4><p><img src="https://files.catbox.moe/v3rr8j.png"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">-javaagent:D:/DevOps/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=diandian-starter,collector.backend_service=82.157.140.94:11800,plugin.toolkit.log.grpc.reporter.server_host=82.157.140.94,plugin.toolkit.log.grpc.reporter.server_port=11800</span><br><span class="line"></span><br><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=82.157.140.94:11800;SW_AGENT_NAME=diandian-starter</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="集成外部数据库（mysql）"><a href="#集成外部数据库（mysql）" class="headerlink" title="集成外部数据库（mysql）"></a>集成外部数据库（mysql）</h2><p>修改 config/application.yml 文件，将 storage 设置为 mysql</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">storage:</span></span><br><span class="line">  <span class="attr">selector:</span> <span class="string">$&#123;SW_STORAGE:mysql&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>填写 mysql 用户名密码</p>
+<p>按照单机版启动即可</p>
+<h2 id="集群版"><a href="#集群版" class="headerlink" title="集群版"></a>集群版</h2><p>由于skywalking只是负责监控程序，进行分布式链路跟踪的，所以skywalking OAP如果宕机了，完全不会影响正常业务。</p>
+<p>Skywalking 集群式将SkyWalking oap作为一个服务注册到 nacos（或其他注册中心，这里不做描述） 上。</p>
+<p>只要skywalking没有全部宕机，保证有一个skywalking oap在运行，就能继续运行</p>
+<h3 id="准备前提"><a href="#准备前提" class="headerlink" title="准备前提"></a>准备前提</h3><blockquote>
+<ol>
+<li>一个Nacos 或 集群</li>
+<li>一个数据库（mysql）或集群</li>
+<li>两个以上的 skywalking oap</li>
+<li>一个UI 或 集群</li>
+</ol>
+</blockquote>
+<h3 id="步骤分解-1"><a href="#步骤分解-1" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
+<ol>
+<li>解压两份以上 skywalking</li>
+<li>修改 application.yml 文件</li>
+<li>配置 UI（webapp.yml）</li>
+<li>wkywalking 启动</li>
+<li>程序启动</li>
+</ol>
+</blockquote>
+<h3 id="1-解压两份skywalking"><a href="#1-解压两份skywalking" class="headerlink" title="1.解压两份skywalking"></a>1.解压两份skywalking</h3><h3 id="2-修改-application-yml-文件"><a href="#2-修改-application-yml-文件" class="headerlink" title="2.修改 application.yml 文件"></a>2.修改 application.yml 文件</h3><p>/config/application.yml</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">cluster:</span></span><br><span class="line">  	<span class="attr">selector:</span> <span class="string">$&#123;SW_CLUSTER:nacos&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">nacos:</span> </span><br><span class="line">	<span class="attr">serviceName:</span> <span class="string">$&#123;SW_SERVICE_NAME:&quot;SkyWalking_OAP_Cluster&quot;&#125;</span> </span><br><span class="line">	<span class="attr">hostPort:</span> <span class="string">$&#123;SW_CLUSTER_NACOS_HOST_PORT:localhost:8848&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>第一台</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12801&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11801&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>第二台</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12802&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11802&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-配置UI"><a href="#3-配置UI" class="headerlink" title="3.配置UI"></a>3.配置UI</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">listOfServers:</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:12801,127.0.0.1:12802</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-启动-skywalking"><a href="#4-启动-skywalking" class="headerlink" title="4.启动 skywalking"></a>4.启动 skywalking</h3><p>启动两个以上oap，一个及以上UI</p>
+<h3 id="5-程序启动"><a href="#5-程序启动" class="headerlink" title="5.程序启动"></a>5.程序启动</h3><h4 id="Jar包启动"><a href="#Jar包启动" class="headerlink" title="Jar包启动"></a>Jar包启动</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java -javaagent:xxxxx/agent/skywalking-agent.jar</span><br><span class="line">-Dskywalking.agent.service_name=gateway</span><br><span class="line">-Dskywalking.collector.backend_service=192.168.172.128:11801,192.168.172.128:11802</span><br><span class="line">-jar 你的jar包名</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="IDEA启动"><a href="#IDEA启动" class="headerlink" title="IDEA启动"></a>IDEA启动</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=192.168.172.128:11801,192.168.172.128:11802;SW_AGENT_NAME=11-springboot-idea</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%BF%90%E7%BB%B4/" rel="tag"># 运维</a>
+              <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag"># 微服务</a>
+              <a href="/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/" rel="tag"># 中间件</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/11/15/Vue%E5%8D%95%E9%A1%B5%E5%BF%AB%E9%80%9F%E5%BC%80%E5%8F%91%E7%AC%94%E8%AE%B0/" rel="prev" title="Vue单页快速开发笔记">
+      <i class="fa fa-chevron-left"></i> Vue单页快速开发笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/11/22/Web%E5%BA%94%E7%94%A8%E4%B8%8A%E7%BA%BF%E5%85%A8%E6%B5%81%E7%A8%8B/" rel="next" title="Web应用上线全流程">
+      Web应用上线全流程 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC81NzY3NC8zNDEzNw=="></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">2.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E6%9C%BA%E7%89%88%EF%BC%88%E4%BD%BF%E7%94%A8h2%E5%86%85%E7%BD%AE%E6%95%B0%E6%8D%AE%E5%BA%93%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">单机版（使用h2内置数据库）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A4%E5%88%86%E8%A7%A3"><span class="nav-number">3.1.</span> <span class="nav-text">步骤分解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BD%E5%AE%98%E6%96%B9%E5%8C%85%EF%BC%88%E4%B8%8D%E4%BB%8B%E7%BB%8D%E6%89%8B%E5%8A%A8%E7%BC%96%E8%AF%91%EF%BC%89"><span class="nav-number">3.2.</span> <span class="nav-text">下载官方包（不介绍手动编译）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SktWalking-OAP%E6%90%AD%E5%BB%BA"><span class="nav-number">3.3.</span> <span class="nav-text">SktWalking OAP搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8-SkyWalking-OAP%E6%9C%8D%E5%8A%A1"><span class="nav-number">3.4.</span> <span class="nav-text">启动 SkyWalking OAP服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B"><span class="nav-number">3.5.</span> <span class="nav-text">使用案例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Jar%E5%8C%85"><span class="nav-number">3.5.1.</span> <span class="nav-text">Jar包</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IDEA"><span class="nav-number">3.5.2.</span> <span class="nav-text">IDEA</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9B%86%E6%88%90%E5%A4%96%E9%83%A8%E6%95%B0%E6%8D%AE%E5%BA%93%EF%BC%88mysql%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">集成外部数据库（mysql）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9B%86%E7%BE%A4%E7%89%88"><span class="nav-number">5.</span> <span class="nav-text">集群版</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%89%8D%E6%8F%90"><span class="nav-number">5.1.</span> <span class="nav-text">准备前提</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A4%E5%88%86%E8%A7%A3-1"><span class="nav-number">5.2.</span> <span class="nav-text">步骤分解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%A7%A3%E5%8E%8B%E4%B8%A4%E4%BB%BDskywalking"><span class="nav-number">5.3.</span> <span class="nav-text">1.解压两份skywalking</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BF%AE%E6%94%B9-application-yml-%E6%96%87%E4%BB%B6"><span class="nav-number">5.4.</span> <span class="nav-text">2.修改 application.yml 文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E9%85%8D%E7%BD%AEUI"><span class="nav-number">5.5.</span> <span class="nav-text">3.配置UI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%90%AF%E5%8A%A8-skywalking"><span class="nav-number">5.6.</span> <span class="nav-text">4.启动 skywalking</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E7%A8%8B%E5%BA%8F%E5%90%AF%E5%8A%A8"><span class="nav-number">5.7.</span> <span class="nav-text">5.程序启动</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Jar%E5%8C%85%E5%90%AF%E5%8A%A8"><span class="nav-number">5.7.1.</span> <span class="nav-text">Jar包启动</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IDEA%E5%90%AF%E5%8A%A8"><span class="nav-number">5.7.2.</span> <span class="nav-text">IDEA启动</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Lucca Suen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Lucca Suen</p>
+  <div class="site-description" itemprop="description">苦等预言家 不如独立思考</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/lucca-suen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;lucca-suen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/luccasuen.dev@gmail.com" title="E-Mail → luccasuen.dev@gmail.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lucca Suen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>
