@@ -1,6 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>SkyWalking部署流程</title>
+    <url>/2022/11/16/SkyWalking%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>项目中使用了Skywalking，记录下skywalking的部署流程，方便后续使用。</p>
+<span id="more"></span>
+
+
+
+<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>SkyWalking 架构图</p>
+<p><img src="https://files.catbox.moe/xxdu5z.png"></p>
+<p>整个架构分成四部分：</p>
+<p>1、上部分Agent ：负责从应用中，收集链路信息，发送给 SkyWalking OAP 服务器；</p>
+<p>2、下部分 SkyWalking OAP ：负责接收Agent发送的Tracing数据信息，然后进行分析(Analysis Core)，存储到外部存储器(Storage)，最终提供查询(Query)功能；</p>
+<p>3、右部分Storage：Tracing数据存储，目前支持ES、MySQL、Sharding Sphere、TiDB、H2多种存储器，目前采用较多的是ES，主要考虑是SkyWalking开发团队自己的生产环境采用ES为主；</p>
+<p>4、左部分SkyWalking UI：负责提供控台，查看链路等等；</p>
+<!--More-->
+
+<h2 id="单机版（使用h2内置数据库）"><a href="#单机版（使用h2内置数据库）" class="headerlink" title="单机版（使用h2内置数据库）"></a>单机版（使用h2内置数据库）</h2><h3 id="步骤分解"><a href="#步骤分解" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
+<ol>
+<li>下载SkyWalking软件包</li>
+<li>搭建一个SkyWalking OAP 和 SkyWalking UI服务</li>
+<li>启动一个Spring Boot 应用，并配置SkyWalking Agent</li>
+</ol>
+</blockquote>
+<h3 id="下载官方包（不介绍手动编译）"><a href="#下载官方包（不介绍手动编译）" class="headerlink" title="下载官方包（不介绍手动编译）"></a>下载官方包（不介绍手动编译）</h3><p>尾缀带es的表示支持es，版本自行选择</p>
+<h3 id="SktWalking-OAP搭建"><a href="#SktWalking-OAP搭建" class="headerlink" title="SktWalking OAP搭建"></a>SktWalking OAP搭建</h3><p>解压:（tar -zxvf xxxxx.tar.gz）</p>
+<p>存放到指定位置</p>
+<blockquote>
+<p>agent         #SkyWalking Agent</p>
+<p>bin             #执行脚本</p>
+<p>config        #SkyWalking OAP Server 配置文件</p>
+<p>LICENSE</p>
+<p>licenses</p>
+<p>NOTICE</p>
+<p>oap-libs     #SkyWalking OAP Server（后面可以在这导入数据库驱动）</p>
+<p>README.txt</p>
+<p>tools</p>
+<p>webapp     #SkyWalking UI</p>
+</blockquote>
+<h3 id="启动-SkyWalking-OAP服务"><a href="#启动-SkyWalking-OAP服务" class="headerlink" title="启动 SkyWalking OAP服务"></a>启动 SkyWalking OAP服务</h3><p>进入到对应文件夹下bin目录：./startup.sh</p>
+<p>打开该脚本发现对应脚本同时打开 oapservice.sh（skywalking-oap-server） 和 webapp.sh（skywalking-web-ui）</p>
+<p>换言之，可以单独启动（后面集群配置用得到）</p>
+<p>可以查看 log 目录下日志文件</p>
+<p>（以下端口参数皆可修改）</p>
+<p>skywalking-oap-server服务启动后会占用：11800 和 12800 两个端口；（可以在 config/application.yml  修改，这个文件里面存放 skywalking 配置，包括后面数据库修改）</p>
+<p>skywalking-web-ui服务会占用 8080 端口（可以在 webapp/webapp.yml 修改，这个配置文件可以修改ui界面的配置，后面集群配置用的到）</p>
+<blockquote>
+<p>server.port：SkyWalking UI服务端口，默认是8080；<br>collector.ribbon.listOfServers：SkyWalking OAP服务地址数组，SkyWalking UI界面的数据是通过请求SkyWalking OAP服务来获得（后面集群配置用的到）</p>
+</blockquote>
+<h3 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h3><h4 id="Jar包"><a href="#Jar包" class="headerlink" title="Jar包"></a>Jar包</h4><ol>
+<li><p>在启动程序前加一个-javaagent 参数也可完成对程序的跟踪；</p>
+</li>
+<li><p>编写shell脚本</p>
+</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/sh</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">SkyWalking Agent配置</span></span><br><span class="line">export SW_AGENT_NAME=11-springboot #Agent名字,一般使用`spring.application.name` </span><br><span class="line">export SW_AGENT_COLLECTOR_BACKEND_SERVICES=127.0.0.1:11800 #配置 Collector 地址。</span><br><span class="line">export SW_AGENT_SPAN_LIMIT=2000 #配置链路的最大Span数量，默认为 300。</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动 skywalking 探针</span></span><br><span class="line">export JAVA_AGENT=-javaagent:/usr/local/apache-skywalking-apm-bin/agent/skywalking-agent.jar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">jar启动</span></span><br><span class="line">java $JAVA_AGENT -jar 11-springboot-1.0.0.jar</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="IDEA"><a href="#IDEA" class="headerlink" title="IDEA"></a>IDEA</h4><p><img src="https://files.catbox.moe/v3rr8j.png"></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">-javaagent:D:/DevOps/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=diandian-starter,collector.backend_service=82.157.140.94:11800,plugin.toolkit.log.grpc.reporter.server_host=82.157.140.94,plugin.toolkit.log.grpc.reporter.server_port=11800</span><br><span class="line"></span><br><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=82.157.140.94:11800;SW_AGENT_NAME=diandian-starter</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="集成外部数据库（mysql）"><a href="#集成外部数据库（mysql）" class="headerlink" title="集成外部数据库（mysql）"></a>集成外部数据库（mysql）</h2><p>修改 config/application.yml 文件，将 storage 设置为 mysql</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">storage:</span></span><br><span class="line">  <span class="attr">selector:</span> <span class="string">$&#123;SW_STORAGE:mysql&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>填写 mysql 用户名密码</p>
+<p>按照单机版启动即可</p>
+<h2 id="集群版"><a href="#集群版" class="headerlink" title="集群版"></a>集群版</h2><p>由于skywalking只是负责监控程序，进行分布式链路跟踪的，所以skywalking OAP如果宕机了，完全不会影响正常业务。</p>
+<p>Skywalking 集群式将SkyWalking oap作为一个服务注册到 nacos（或其他注册中心，这里不做描述） 上。</p>
+<p>只要skywalking没有全部宕机，保证有一个skywalking oap在运行，就能继续运行</p>
+<h3 id="准备前提"><a href="#准备前提" class="headerlink" title="准备前提"></a>准备前提</h3><blockquote>
+<ol>
+<li>一个Nacos 或 集群</li>
+<li>一个数据库（mysql）或集群</li>
+<li>两个以上的 skywalking oap</li>
+<li>一个UI 或 集群</li>
+</ol>
+</blockquote>
+<h3 id="步骤分解-1"><a href="#步骤分解-1" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
+<ol>
+<li>解压两份以上 skywalking</li>
+<li>修改 application.yml 文件</li>
+<li>配置 UI（webapp.yml）</li>
+<li>wkywalking 启动</li>
+<li>程序启动</li>
+</ol>
+</blockquote>
+<h3 id="1-解压两份skywalking"><a href="#1-解压两份skywalking" class="headerlink" title="1.解压两份skywalking"></a>1.解压两份skywalking</h3><h3 id="2-修改-application-yml-文件"><a href="#2-修改-application-yml-文件" class="headerlink" title="2.修改 application.yml 文件"></a>2.修改 application.yml 文件</h3><p>/config/application.yml</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">cluster:</span></span><br><span class="line">  	<span class="attr">selector:</span> <span class="string">$&#123;SW_CLUSTER:nacos&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">nacos:</span> </span><br><span class="line">	<span class="attr">serviceName:</span> <span class="string">$&#123;SW_SERVICE_NAME:&quot;SkyWalking_OAP_Cluster&quot;&#125;</span> </span><br><span class="line">	<span class="attr">hostPort:</span> <span class="string">$&#123;SW_CLUSTER_NACOS_HOST_PORT:localhost:8848&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>第一台</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12801&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11801&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>第二台</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12802&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11802&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-配置UI"><a href="#3-配置UI" class="headerlink" title="3.配置UI"></a>3.配置UI</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">listOfServers:</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:12801,127.0.0.1:12802</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-启动-skywalking"><a href="#4-启动-skywalking" class="headerlink" title="4.启动 skywalking"></a>4.启动 skywalking</h3><p>启动两个以上oap，一个及以上UI</p>
+<h3 id="5-程序启动"><a href="#5-程序启动" class="headerlink" title="5.程序启动"></a>5.程序启动</h3><h4 id="Jar包启动"><a href="#Jar包启动" class="headerlink" title="Jar包启动"></a>Jar包启动</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">java -javaagent:xxxxx/agent/skywalking-agent.jar</span><br><span class="line">-Dskywalking.agent.service_name=gateway</span><br><span class="line">-Dskywalking.collector.backend_service=192.168.172.128:11801,192.168.172.128:11802</span><br><span class="line">-jar 你的jar包名</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="IDEA启动"><a href="#IDEA启动" class="headerlink" title="IDEA启动"></a>IDEA启动</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=192.168.172.128:11801,192.168.172.128:11802;SW_AGENT_NAME=11-springboot-idea</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>环境配置</category>
+      </categories>
+      <tags>
+        <tag>运维</tag>
+        <tag>微服务</tag>
+        <tag>中间件</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CentOs7 安装 MySQL5.7</title>
     <url>/2022/11/10/CentOS7%E5%AE%89%E8%A3%85MySQL5.7/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>记录一个没有坑的，在CentOS7环境下安装MySQL5.7的流程。</p>
@@ -151,129 +274,6 @@
       <tags>
         <tag>前端</tag>
         <tag>Vue</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>SkyWalking部署流程</title>
-    <url>/2022/11/16/SkyWalking%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>项目中使用了Skywalking，记录下skywalking的部署流程，方便后续使用。</p>
-<span id="more"></span>
-
-
-
-<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>SkyWalking 架构图</p>
-<p><img src="https://files.catbox.moe/xxdu5z.png"></p>
-<p>整个架构分成四部分：</p>
-<p>1、上部分Agent ：负责从应用中，收集链路信息，发送给 SkyWalking OAP 服务器；</p>
-<p>2、下部分 SkyWalking OAP ：负责接收Agent发送的Tracing数据信息，然后进行分析(Analysis Core)，存储到外部存储器(Storage)，最终提供查询(Query)功能；</p>
-<p>3、右部分Storage：Tracing数据存储，目前支持ES、MySQL、Sharding Sphere、TiDB、H2多种存储器，目前采用较多的是ES，主要考虑是SkyWalking开发团队自己的生产环境采用ES为主；</p>
-<p>4、左部分SkyWalking UI：负责提供控台，查看链路等等；</p>
-<!--More-->
-
-<h2 id="单机版（使用h2内置数据库）"><a href="#单机版（使用h2内置数据库）" class="headerlink" title="单机版（使用h2内置数据库）"></a>单机版（使用h2内置数据库）</h2><h3 id="步骤分解"><a href="#步骤分解" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
-<ol>
-<li>下载SkyWalking软件包</li>
-<li>搭建一个SkyWalking OAP 和 SkyWalking UI服务</li>
-<li>启动一个Spring Boot 应用，并配置SkyWalking Agent</li>
-</ol>
-</blockquote>
-<h3 id="下载官方包（不介绍手动编译）"><a href="#下载官方包（不介绍手动编译）" class="headerlink" title="下载官方包（不介绍手动编译）"></a>下载官方包（不介绍手动编译）</h3><p>尾缀带es的表示支持es，版本自行选择</p>
-<h3 id="SktWalking-OAP搭建"><a href="#SktWalking-OAP搭建" class="headerlink" title="SktWalking OAP搭建"></a>SktWalking OAP搭建</h3><p>解压:（tar -zxvf xxxxx.tar.gz）</p>
-<p>存放到指定位置</p>
-<blockquote>
-<p>agent         #SkyWalking Agent</p>
-<p>bin             #执行脚本</p>
-<p>config        #SkyWalking OAP Server 配置文件</p>
-<p>LICENSE</p>
-<p>licenses</p>
-<p>NOTICE</p>
-<p>oap-libs     #SkyWalking OAP Server（后面可以在这导入数据库驱动）</p>
-<p>README.txt</p>
-<p>tools</p>
-<p>webapp     #SkyWalking UI</p>
-</blockquote>
-<h3 id="启动-SkyWalking-OAP服务"><a href="#启动-SkyWalking-OAP服务" class="headerlink" title="启动 SkyWalking OAP服务"></a>启动 SkyWalking OAP服务</h3><p>进入到对应文件夹下bin目录：./startup.sh</p>
-<p>打开该脚本发现对应脚本同时打开 oapservice.sh（skywalking-oap-server） 和 webapp.sh（skywalking-web-ui）</p>
-<p>换言之，可以单独启动（后面集群配置用得到）</p>
-<p>可以查看 log 目录下日志文件</p>
-<p>（以下端口参数皆可修改）</p>
-<p>skywalking-oap-server服务启动后会占用：11800 和 12800 两个端口；（可以在 config/application.yml  修改，这个文件里面存放 skywalking 配置，包括后面数据库修改）</p>
-<p>skywalking-web-ui服务会占用 8080 端口（可以在 webapp/webapp.yml 修改，这个配置文件可以修改ui界面的配置，后面集群配置用的到）</p>
-<blockquote>
-<p>server.port：SkyWalking UI服务端口，默认是8080；<br>collector.ribbon.listOfServers：SkyWalking OAP服务地址数组，SkyWalking UI界面的数据是通过请求SkyWalking OAP服务来获得（后面集群配置用的到）</p>
-</blockquote>
-<h3 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h3><h4 id="Jar包"><a href="#Jar包" class="headerlink" title="Jar包"></a>Jar包</h4><ol>
-<li><p>在启动程序前加一个-javaagent 参数也可完成对程序的跟踪；</p>
-</li>
-<li><p>编写shell脚本</p>
-</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/sh</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">SkyWalking Agent配置</span></span><br><span class="line">export SW_AGENT_NAME=11-springboot #Agent名字,一般使用`spring.application.name` </span><br><span class="line">export SW_AGENT_COLLECTOR_BACKEND_SERVICES=127.0.0.1:11800 #配置 Collector 地址。</span><br><span class="line">export SW_AGENT_SPAN_LIMIT=2000 #配置链路的最大Span数量，默认为 300。</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动 skywalking 探针</span></span><br><span class="line">export JAVA_AGENT=-javaagent:/usr/local/apache-skywalking-apm-bin/agent/skywalking-agent.jar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">jar启动</span></span><br><span class="line">java $JAVA_AGENT -jar 11-springboot-1.0.0.jar</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="IDEA"><a href="#IDEA" class="headerlink" title="IDEA"></a>IDEA</h4><p><img src="https://files.catbox.moe/v3rr8j.png"></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">-javaagent:D:/DevOps/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=diandian-starter,collector.backend_service=82.157.140.94:11800,plugin.toolkit.log.grpc.reporter.server_host=82.157.140.94,plugin.toolkit.log.grpc.reporter.server_port=11800</span><br><span class="line"></span><br><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=82.157.140.94:11800;SW_AGENT_NAME=diandian-starter</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="集成外部数据库（mysql）"><a href="#集成外部数据库（mysql）" class="headerlink" title="集成外部数据库（mysql）"></a>集成外部数据库（mysql）</h2><p>修改 config/application.yml 文件，将 storage 设置为 mysql</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">storage:</span></span><br><span class="line">  <span class="attr">selector:</span> <span class="string">$&#123;SW_STORAGE:mysql&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>填写 mysql 用户名密码</p>
-<p>按照单机版启动即可</p>
-<h2 id="集群版"><a href="#集群版" class="headerlink" title="集群版"></a>集群版</h2><p>由于skywalking只是负责监控程序，进行分布式链路跟踪的，所以skywalking OAP如果宕机了，完全不会影响正常业务。</p>
-<p>Skywalking 集群式将SkyWalking oap作为一个服务注册到 nacos（或其他注册中心，这里不做描述） 上。</p>
-<p>只要skywalking没有全部宕机，保证有一个skywalking oap在运行，就能继续运行</p>
-<h3 id="准备前提"><a href="#准备前提" class="headerlink" title="准备前提"></a>准备前提</h3><blockquote>
-<ol>
-<li>一个Nacos 或 集群</li>
-<li>一个数据库（mysql）或集群</li>
-<li>两个以上的 skywalking oap</li>
-<li>一个UI 或 集群</li>
-</ol>
-</blockquote>
-<h3 id="步骤分解-1"><a href="#步骤分解-1" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
-<ol>
-<li>解压两份以上 skywalking</li>
-<li>修改 application.yml 文件</li>
-<li>配置 UI（webapp.yml）</li>
-<li>wkywalking 启动</li>
-<li>程序启动</li>
-</ol>
-</blockquote>
-<h3 id="1-解压两份skywalking"><a href="#1-解压两份skywalking" class="headerlink" title="1.解压两份skywalking"></a>1.解压两份skywalking</h3><h3 id="2-修改-application-yml-文件"><a href="#2-修改-application-yml-文件" class="headerlink" title="2.修改 application.yml 文件"></a>2.修改 application.yml 文件</h3><p>/config/application.yml</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">cluster:</span></span><br><span class="line">  	<span class="attr">selector:</span> <span class="string">$&#123;SW_CLUSTER:nacos&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">nacos:</span> </span><br><span class="line">	<span class="attr">serviceName:</span> <span class="string">$&#123;SW_SERVICE_NAME:&quot;SkyWalking_OAP_Cluster&quot;&#125;</span> </span><br><span class="line">	<span class="attr">hostPort:</span> <span class="string">$&#123;SW_CLUSTER_NACOS_HOST_PORT:localhost:8848&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>第一台</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12801&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11801&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>第二台</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12802&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11802&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="3-配置UI"><a href="#3-配置UI" class="headerlink" title="3.配置UI"></a>3.配置UI</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">listOfServers:</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:12801,127.0.0.1:12802</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="4-启动-skywalking"><a href="#4-启动-skywalking" class="headerlink" title="4.启动 skywalking"></a>4.启动 skywalking</h3><p>启动两个以上oap，一个及以上UI</p>
-<h3 id="5-程序启动"><a href="#5-程序启动" class="headerlink" title="5.程序启动"></a>5.程序启动</h3><h4 id="Jar包启动"><a href="#Jar包启动" class="headerlink" title="Jar包启动"></a>Jar包启动</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">java -javaagent:xxxxx/agent/skywalking-agent.jar</span><br><span class="line">-Dskywalking.agent.service_name=gateway</span><br><span class="line">-Dskywalking.collector.backend_service=192.168.172.128:11801,192.168.172.128:11802</span><br><span class="line">-jar 你的jar包名</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="IDEA启动"><a href="#IDEA启动" class="headerlink" title="IDEA启动"></a>IDEA启动</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=192.168.172.128:11801,192.168.172.128:11802;SW_AGENT_NAME=11-springboot-idea</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>环境配置</category>
-      </categories>
-      <tags>
-        <tag>运维</tag>
-        <tag>微服务</tag>
-        <tag>中间件</tag>
       </tags>
   </entry>
   <entry>
@@ -459,6 +459,74 @@
       <tags>
         <tag>运维</tag>
         <tag>服务器</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>常见数据结构及对应算法</title>
+    <url>/2022/12/27/%E5%B8%B8%E8%A7%81%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%AF%B9%E5%BA%94%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>java实现常见数据结构</p>
+<p>内容包括：</p>
+<ul>
+<li>链表（单链表、双链表）</li>
+<li>栈、队列（单调栈、单调队列）</li>
+<li>字符串（KMP、Trie、字符串hash、回文）</li>
+<li>堆（增删查改、堆排序）</li>
+<li>并查集（朴素、路径压缩）</li>
+</ul>
+<span id="more"></span>
+
+
+
+<h2 id="链表"><a href="#链表" class="headerlink" title="链表"></a>链表</h2><h3 id="单链表-（数组模拟）"><a href="#单链表-（数组模拟）" class="headerlink" title="单链表 （数组模拟）"></a>单链表 （数组模拟）</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> head, idx;	<span class="comment">// 头节点和使用的节点下标</span></span><br><span class="line"><span class="type">int</span>[] data = <span class="keyword">new</span> <span class="title class_">int</span>[N];	<span class="comment">// 数据</span></span><br><span class="line"><span class="type">int</span>[] next = <span class="keyword">new</span> <span class="title class_">int</span>[N];	<span class="comment">// 指针</span></span><br><span class="line"><span class="comment">// 初始化</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">init</span><span class="params">()</span> &#123;</span><br><span class="line">    head = -<span class="number">1</span>;</span><br><span class="line">    idx = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 链表头插入一个数a</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">insert</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">    data[idx] = x;</span><br><span class="line">    next[idx] = head;</span><br><span class="line">    head = idx++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将头节点删除</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">remove</span><span class="params">()</span> &#123;</span><br><span class="line">    head = next[head];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="双链表（数组模拟）"><a href="#双链表（数组模拟）" class="headerlink" title="双链表（数组模拟）"></a>双链表（数组模拟）</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 设置左右两个空节点，可以减少代码复杂度</span></span><br><span class="line"><span class="comment">// 左节点为0，右节点为1</span></span><br><span class="line"><span class="type">int</span>[] data = <span class="keyword">new</span> <span class="title class_">int</span>[N];	<span class="comment">// 数据</span></span><br><span class="line"><span class="type">int</span>[] l = <span class="keyword">new</span> <span class="title class_">int</span>[N];		<span class="comment">// 左指针</span></span><br><span class="line"><span class="type">int</span>[] r = <span class="keyword">new</span> <span class="title class_">int</span>[N];		<span class="comment">// 右指针</span></span><br><span class="line"><span class="comment">// 初始化</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">init</span><span class="params">()</span> &#123;</span><br><span class="line">    r[<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line">    l[<span class="number">1</span>] = <span class="number">0</span>;</span><br><span class="line">    idx = <span class="number">2</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 在节点k的右边插入一个数x，左边插入同理</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">insert</span><span class="params">(<span class="type">int</span> k, <span class="type">int</span> x)</span> &#123;</span><br><span class="line">    data[idx] = x;</span><br><span class="line">    l[idx] = k;		r[idx] = r[k];</span><br><span class="line">    l[r[k]] = idx;	r[k] = idx++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 删除节点k</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">remove</span><span class="params">(<span class="type">int</span> k)</span> &#123;</span><br><span class="line">    l[r[k]] = l[k];</span><br><span class="line">    r[l[k]] = r[k];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><h3 id="普通栈（数组模拟）"><a href="#普通栈（数组模拟）" class="headerlink" title="普通栈（数组模拟）"></a>普通栈（数组模拟）</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span>[] s = <span class="keyword">new</span> <span class="title class_">int</span>[N];</span><br><span class="line"><span class="type">int</span> <span class="variable">top</span> <span class="operator">=</span> -<span class="number">1</span>;</span><br><span class="line"><span class="comment">// 插入</span></span><br><span class="line">s[++top] = x;</span><br><span class="line"><span class="comment">// 弹出</span></span><br><span class="line">top--;</span><br><span class="line"><span class="comment">// 查看栈顶</span></span><br><span class="line">s[top];</span><br><span class="line"><span class="comment">// 判空</span></span><br><span class="line">top == -<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="单调栈（数组模拟）"><a href="#单调栈（数组模拟）" class="headerlink" title="单调栈（数组模拟）"></a>单调栈（数组模拟）</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">top</span> <span class="operator">=</span> -<span class="number">1</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) &#123;</span><br><span class="line">	<span class="keyword">while</span> (top != -<span class="number">1</span> &amp;&amp; check(s[top], i)) top--;</span><br><span class="line">    s[++top] = i;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="队列（数组模拟）"><a href="#队列（数组模拟）" class="headerlink" title="队列（数组模拟）"></a>队列（数组模拟）</h2><h3 id="普通队列"><a href="#普通队列" class="headerlink" title="普通队列"></a>普通队列</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span>[] q = <span class="keyword">new</span> <span class="title class_">int</span>[N];</span><br><span class="line"><span class="type">int</span> <span class="variable">hh</span> <span class="operator">=</span> <span class="number">0</span>, tt = -<span class="number">1</span>;</span><br><span class="line"><span class="comment">// 向队尾插入</span></span><br><span class="line">q[++tt] = x;</span><br><span class="line"><span class="comment">// 队头弹出</span></span><br><span class="line">hh++;</span><br><span class="line"><span class="comment">// 对头的值</span></span><br><span class="line">q[hh];</span><br><span class="line"><span class="comment">// 判空</span></span><br><span class="line">hh &lt; tt</span><br></pre></td></tr></table></figure>
+
+<h3 id="循环队列"><a href="#循环队列" class="headerlink" title="循环队列"></a>循环队列</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span>[] q = <span class="keyword">new</span> <span class="title class_">int</span>[N];</span><br><span class="line"><span class="type">int</span> <span class="variable">hh</span> <span class="operator">=</span> <span class="number">0</span>, tt = <span class="number">0</span>;</span><br><span class="line"><span class="comment">// 向队尾插入一个数</span></span><br><span class="line">q[tt++] = x;</span><br><span class="line"><span class="keyword">if</span> (tt == N) tt = <span class="number">0</span>;</span><br><span class="line"><span class="comment">// 从队头弹出一个数</span></span><br><span class="line">hh++;</span><br><span class="line"><span class="keyword">if</span> (hh == N) hh = <span class="number">0</span>;</span><br><span class="line"><span class="comment">// 队头的值</span></span><br><span class="line">q[hh];</span><br><span class="line"><span class="comment">// 判断队列是否为空</span></span><br><span class="line">hh != tt</span><br></pre></td></tr></table></figure>
+
+<h3 id="单调队列"><a href="#单调队列" class="headerlink" title="单调队列"></a>单调队列</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">hh</span> <span class="operator">=</span> <span class="number">0</span>, tt = -<span class="number">1</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">    <span class="keyword">while</span> (hh &lt;= tt &amp;&amp; check_out(q[hh])) hh++;</span><br><span class="line">    <span class="keyword">while</span> (hh &lt;= tt &amp;&amp; check(q[tt], i)) tt--;</span><br><span class="line">    q[++tt] = i;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h2><h3 id="字串查找-KMP"><a href="#字串查找-KMP" class="headerlink" title="字串查找 KMP"></a>字串查找 KMP</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">char</span>[] s = <span class="keyword">new</span> <span class="title class_">char</span>[n];</span><br><span class="line"><span class="type">char</span>[] p = <span class="keyword">new</span> <span class="title class_">char</span>[m];</span><br><span class="line"><span class="type">int</span>[] ne = <span class="keyword">new</span> <span class="title class_">int</span>[m+<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 计算next</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">2</span>, j = <span class="number">0</span>; i &lt;= m; i++) &#123;</span><br><span class="line">    <span class="keyword">while</span> (j &gt; <span class="number">0</span> &amp;&amp; p[i] != p[j+<span class="number">1</span>]) j = ne[j];</span><br><span class="line">    <span class="keyword">if</span> (p[i] == p[j+<span class="number">1</span>]) j++;</span><br><span class="line">    ne[i] = j;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 匹配</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>, j = <span class="number">0</span>; i &lt;= n; i++) &#123;</span><br><span class="line">    <span class="keyword">while</span> (j &gt; <span class="number">0</span> &amp;&amp; s[i] != p[j+<span class="number">1</span>]) j = ne[j];</span><br><span class="line">    <span class="keyword">if</span> (s[i] == p[j+<span class="number">1</span>]) j++;</span><br><span class="line">    <span class="keyword">if</span> (j == n) &#123;</span><br><span class="line">        j = ne[j];</span><br><span class="line">        <span class="comment">// 匹配成功之后要做的事</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Trie树"><a href="#Trie树" class="headerlink" title="Trie树"></a>Trie树</h3><h4 id="字符串统计"><a href="#字符串统计" class="headerlink" title="字符串统计"></a>字符串统计</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Trie</span> <span class="variable">root</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Trie</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Trie</span> &#123;</span><br><span class="line">    Trie[] tr = <span class="keyword">new</span> <span class="title class_">Trie</span>[<span class="number">26</span>];</span><br><span class="line">    <span class="type">int</span> cnt;</span><br><span class="line">    <span class="comment">// 需要什么属性就加什么属性</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">insert</span><span class="params">(String s)</span> &#123;</span><br><span class="line">    <span class="type">Trie</span> <span class="variable">node</span> <span class="operator">=</span> root;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; s.length(); i++) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">u</span> <span class="operator">=</span> s.charAt(i) - <span class="string">&#x27;a&#x27;</span>;</span><br><span class="line">        <span class="keyword">if</span> (node.tr[u] == <span class="literal">null</span>) node.tr[u] = <span class="keyword">new</span> <span class="title class_">Trie</span>();</span><br><span class="line">        node = node.tr[u];</span><br><span class="line">    &#125;</span><br><span class="line">    node.cnt++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">query</span><span class="params">(String s)</span> &#123;</span><br><span class="line">    <span class="type">Trie</span> <span class="variable">node</span> <span class="operator">=</span> root;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; s.length(); i++) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">u</span> <span class="operator">=</span> s.charAt(i) - <span class="string">&#x27;a&#x27;</span>;</span><br><span class="line">        node = node.tr[u];</span><br><span class="line">        <span class="keyword">if</span> (node == <span class="literal">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> node.cnt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="异或对判断"><a href="#异或对判断" class="headerlink" title="异或对判断"></a>异或对判断</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[] a = <span class="keyword">new</span> <span class="title class_">int</span>[n];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) insert((a[i] = sc.nextInt()));</span><br><span class="line">        </span><br><span class="line">        <span class="type">int</span> <span class="variable">ans</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) ans = Math.max(ans, query(a[i]));</span><br><span class="line">        System.out.println(ans);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Trie</span> <span class="variable">root</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Trie</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Trie</span> &#123;</span><br><span class="line">        Trie[] tr = <span class="keyword">new</span> <span class="title class_">Trie</span>[<span class="number">2</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">insert</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">        <span class="type">Trie</span> <span class="variable">t</span> <span class="operator">=</span> root;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">30</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">p</span> <span class="operator">=</span> x &gt;&gt; i &amp; <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span> (t.tr[p] == <span class="literal">null</span>)</span><br><span class="line">                t.tr[p] = <span class="keyword">new</span> <span class="title class_">Trie</span>();</span><br><span class="line">            t = t.tr[p];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">query</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">res</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="type">Trie</span> <span class="variable">t</span> <span class="operator">=</span> root;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">30</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">p</span> <span class="operator">=</span> x &gt;&gt; i &amp; <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span> (t.tr[p^<span class="number">1</span>] != <span class="literal">null</span>) &#123;</span><br><span class="line">                res += (<span class="number">1</span> &lt;&lt; i);</span><br><span class="line">                t = t.tr[p^<span class="number">1</span>];</span><br><span class="line">            &#125; <span class="keyword">else</span> t = t.tr[p];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="字符串hash"><a href="#字符串hash" class="headerlink" title="字符串hash"></a>字符串hash</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"><span class="keyword">import</span> java.math.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">BigInteger</span> <span class="variable">base</span> <span class="operator">=</span> BigInteger.valueOf(<span class="number">131</span>);</span><br><span class="line">    <span class="keyword">static</span> <span class="type">BigInteger</span> <span class="variable">mod</span> <span class="operator">=</span> BigInteger.valueOf(<span class="number">2</span>).pow(<span class="number">64</span>);</span><br><span class="line">    <span class="keyword">static</span> BigInteger[] s, p;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">char</span>[] cs;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> n, m;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        n = sc.nextInt();</span><br><span class="line">        m = sc.nextInt();</span><br><span class="line">        cs = (<span class="string">&quot;.&quot;</span> + sc.next()).toCharArray();</span><br><span class="line">        s = <span class="keyword">new</span> <span class="title class_">BigInteger</span>[n+<span class="number">1</span>];</span><br><span class="line">        p = <span class="keyword">new</span> <span class="title class_">BigInteger</span>[n+<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        s[<span class="number">0</span>] = BigInteger.valueOf(<span class="number">0</span>);</span><br><span class="line">        p[<span class="number">0</span>] = BigInteger.valueOf(<span class="number">1</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) &#123;</span><br><span class="line">            s[i] = s[i-<span class="number">1</span>].multiply(base)</span><br><span class="line">                    .add(BigInteger.valueOf(cs[i] - <span class="string">&#x27;a&#x27;</span>))</span><br><span class="line">                    .add(mod).mod(mod);</span><br><span class="line">            p[i] = p[i-<span class="number">1</span>].multiply(base);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (m-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">l1</span> <span class="operator">=</span> sc.nextInt(), r1 = sc.nextInt(), l2 = sc.nextInt(), r2 = sc.nextInt();</span><br><span class="line">            System.out.println(get(l1, r1).equals(get(l2, r2)) ? <span class="string">&quot;Yes&quot;</span> : <span class="string">&quot;No&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> BigInteger <span class="title function_">get</span><span class="params">(<span class="type">int</span> l, <span class="type">int</span> r)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> s[r].subtract(s[l-<span class="number">1</span>].multiply(p[r-l+<span class="number">1</span>])).add(mod).mod(mod);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="最长回文长度-Manacher"><a href="#最长回文长度-Manacher" class="headerlink" title="最长回文长度 Manacher"></a>最长回文长度 Manacher</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">manacher</span><span class="params">(<span class="type">char</span>[] cs)</span> &#123;</span><br><span class="line">    <span class="type">StringBuilder</span> <span class="variable">sb</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 添加占位符去除长度奇偶性影响</span></span><br><span class="line">    sb.append(<span class="string">&#x27;$&#x27;</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">char</span> c : cs) sb.append(<span class="string">&#x27;#&#x27;</span>).append(c);</span><br><span class="line">    sb.append(<span class="string">&quot;#@&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 长度改变</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">len</span> <span class="operator">=</span> cs.length * <span class="number">2</span> + <span class="number">1</span>;</span><br><span class="line">    cs = sb.toString().toCharArray();</span><br><span class="line">    <span class="comment">// maxv 最右回文串有边界， pos 最右回文串对称中心</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">maxv</span> <span class="operator">=</span> <span class="number">0</span>, pos = <span class="number">0</span>, ans = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// length[i] 以i为对称中心，最长的回文半径，如abcba 回文半径3</span></span><br><span class="line">    <span class="type">int</span>[] length = <span class="keyword">new</span> <span class="title class_">int</span>[cs.length];</span><br><span class="line">    <span class="comment">// 从1开始，因为 `abc` 已经编变成 `$#a#b#c$@`</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= len; i++) &#123;</span><br><span class="line">        <span class="comment">// i 位于maxv左侧，取 length[j] 和，maxv - i 最值</span></span><br><span class="line">        <span class="comment">// i 位于maxv右侧，保守估计，半径为1</span></span><br><span class="line">        length[i] = (maxv &gt; i ? Math.min(length[<span class="number">2</span> * pos - i], maxv - i) : <span class="number">1</span>);</span><br><span class="line">        <span class="comment">// 尝试中心扩展</span></span><br><span class="line">        <span class="keyword">while</span> (cs[i - length[i]] == cs[i + length[i]]) length[i]++;</span><br><span class="line">        <span class="comment">// 取最值</span></span><br><span class="line">        ans = Math.max(ans, length[i]);</span><br><span class="line">        <span class="comment">// 更新最右侧回文串</span></span><br><span class="line">        <span class="keyword">if</span> (length[i] + i &gt; maxv) &#123;</span><br><span class="line">            maxv = length[i] + i;</span><br><span class="line">            pos = i;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 处理过后的回文串半径刚好为原串的半径 + 1</span></span><br><span class="line">    <span class="keyword">return</span> ans - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><h3 id="堆排序"><a href="#堆排序" class="headerlink" title="堆排序"></a>堆排序</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> sc.nextInt(), m = sc.nextInt();</span><br><span class="line">        h = <span class="keyword">new</span> <span class="title class_">int</span>[n+<span class="number">1</span>];</span><br><span class="line">        size = n;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) h[i] = sc.nextInt();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> n / <span class="number">2</span>; i &gt; <span class="number">0</span>; i--) down(i);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; m; i++) &#123;</span><br><span class="line">            System.out.print(h[<span class="number">1</span>] + <span class="string">&quot; &quot;</span>);</span><br><span class="line">            h[<span class="number">1</span>] = h[size--];</span><br><span class="line">            down(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span>[] h;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> size;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">t</span> <span class="operator">=</span> h[a]; h[a] = h[b]; h[b] = t;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">down</span><span class="params">(<span class="type">int</span> u)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">t</span> <span class="operator">=</span> u;</span><br><span class="line">        <span class="keyword">if</span> (u * <span class="number">2</span> &lt;= size &amp;&amp; h[u * <span class="number">2</span>] &lt; h[t]) t = u * <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span> (u * <span class="number">2</span> + <span class="number">1</span> &lt;= size &amp;&amp; h[u * <span class="number">2</span> + <span class="number">1</span>] &lt; h[t]) t = u * <span class="number">2</span> + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span> (t != u) &#123;</span><br><span class="line">            swap(u, t);</span><br><span class="line">            down(t);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="堆模拟"><a href="#堆模拟" class="headerlink" title="堆模拟"></a>堆模拟</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// h[N]存储堆中的值, h[1]是堆顶，x的左儿子是2x, 右儿子是2x + 1</span></span><br><span class="line"><span class="comment">// ph[k]存储第k个插入的点在堆中的位置</span></span><br><span class="line"><span class="comment">// hp[k]存储堆中下标是k的点是第几个插入的</span></span><br><span class="line"><span class="type">int</span>[] h = <span class="keyword">new</span> <span class="title class_">int</span>[N], hp = <span class="keyword">new</span> <span class="title class_">int</span>[N], ph = <span class="keyword">new</span> <span class="title class_">int</span>[N];</span><br><span class="line"><span class="type">int</span> <span class="variable">size</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"><span class="keyword">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">    <span class="type">int</span> t;</span><br><span class="line">    t = h[a]; h[a] = h[b]; h[b] = t;</span><br><span class="line">    t = ph[hp[a]]; ph[hp[a]] = ph[hp[b]]; ph[hp[b]] = t;</span><br><span class="line">    t = hp[a]; hp[a] = hp[b]; hp[b] = t;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 下称</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">down</span><span class="params">(<span class="type">int</span> u)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">t</span> <span class="operator">=</span> u;</span><br><span class="line">    <span class="keyword">if</span> (u * <span class="number">2</span> &lt;= size &amp;&amp; h[u * <span class="number">2</span>] &lt; h[t]) t = u * <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">if</span> (u * <span class="number">2</span> + <span class="number">1</span> &lt;= size &amp;&amp; h[u * <span class="number">2</span> + <span class="number">1</span>] &lt; h[t]) t = u * <span class="number">2</span> + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (t != u) &#123;</span><br><span class="line">        swap(t, u);</span><br><span class="line">        down(t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 上浮</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">up</span><span class="params">(<span class="type">int</span> u)</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (u / <span class="number">2</span> &gt; <span class="number">0</span> &amp;&amp; h[u / <span class="number">2</span>] &gt; h[u]) &#123;</span><br><span class="line">        swap(u, u / <span class="number">2</span>);</span><br><span class="line">        u &gt;&gt;= <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 插入</span></span><br><span class="line">size++;</span><br><span class="line">m++;</span><br><span class="line">h[size] = sc.nextInt();</span><br><span class="line">ph[m] = size;</span><br><span class="line">hp[size] = m;</span><br><span class="line">up(size);</span><br><span class="line"><span class="comment">// 获取堆顶</span></span><br><span class="line">h[<span class="number">1</span>];</span><br><span class="line"><span class="comment">// 删除堆顶</span></span><br><span class="line">swap(<span class="number">1</span>, size--);</span><br><span class="line">down(<span class="number">1</span>);</span><br><span class="line"><span class="comment">// 删除第k个插入的元素</span></span><br><span class="line"><span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> sc.nextInt();</span><br><span class="line"><span class="type">int</span> <span class="variable">posk</span> <span class="operator">=</span> ph[k];</span><br><span class="line">swap(posk, size--);</span><br><span class="line">down(posk);</span><br><span class="line">up(posk);</span><br><span class="line"><span class="comment">// 修改第k个元素</span></span><br><span class="line"><span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> sc.nextInt(), x = sc.nextInt();</span><br><span class="line"><span class="type">int</span> <span class="variable">posk</span> <span class="operator">=</span> ph[k];</span><br><span class="line">h[posk] = x;</span><br><span class="line">down(posk);</span><br><span class="line">up(posk);</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="并查集"><a href="#并查集" class="headerlink" title="并查集"></a>并查集</h2><p><strong>朴素</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">find</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (x != fa[x]) x = fa[x];</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">merge</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">    fa[find(a)] = find(b);</span><br><span class="line">    <span class="comment">// 统计连通块包含元素个数</span></span><br><span class="line">    <span class="comment">// ab顺序和上面相反</span></span><br><span class="line">    <span class="comment">// size[find(b)] = find(a);</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>例题 食物链</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span>[] p, d;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> sc.nextInt(), k = sc.nextInt();</span><br><span class="line">        p = <span class="keyword">new</span> <span class="title class_">int</span>[n+<span class="number">1</span>];</span><br><span class="line">        d = <span class="keyword">new</span> <span class="title class_">int</span>[n+<span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) p[i] = i;</span><br><span class="line">        </span><br><span class="line">        <span class="type">int</span> <span class="variable">ans</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (k-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">D</span> <span class="operator">=</span> sc.nextInt(), x = sc.nextInt(), y = sc.nextInt();</span><br><span class="line">            <span class="keyword">if</span> (x &gt; n || y &gt; n) ans++;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">px</span> <span class="operator">=</span> find(x), py = find(y);</span><br><span class="line">                </span><br><span class="line">                <span class="keyword">if</span> (D == <span class="number">1</span>) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (px == py &amp;&amp; ((d[x] - d[y]) % <span class="number">3</span>) != <span class="number">0</span>) ans++;</span><br><span class="line">                    <span class="keyword">else</span> <span class="keyword">if</span> (px != py) &#123;</span><br><span class="line">                        p[px] = py;</span><br><span class="line">                        d[px] = d[y] - d[x];</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> (px == py &amp;&amp; ((d[x] - d[y] - <span class="number">1</span>) % <span class="number">3</span>) != <span class="number">0</span>) ans++;</span><br><span class="line">                    <span class="keyword">else</span> <span class="keyword">if</span> (px != py) &#123;</span><br><span class="line">                        p[px] = py;</span><br><span class="line">                        d[px] = d[y] - d[x] + <span class="number">1</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(ans);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">find</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (x != p[x]) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">t</span> <span class="operator">=</span> find(p[x]);</span><br><span class="line">            d[x] += d[p[x]];</span><br><span class="line">            p[x] = t;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> p[x];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>竞赛</tag>
       </tags>
   </entry>
 </search>

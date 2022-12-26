@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.svg">
+  <link rel="mask-icon" href="/images/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"luccas.top","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言java实现常见数据结构 内容包括：  链表（单链表、双链表） 栈、队列（单调栈、单调队列） 字符串（KMP、Trie、字符串hash、回文） 堆（增删查改、堆排序） 并查集（朴素、路径压缩）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常见数据结构及对应算法">
+<meta property="og:url" content="http://luccas.top/2022/12/27/%E5%B8%B8%E8%A7%81%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%AF%B9%E5%BA%94%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="Lucca&#39;s Blog">
+<meta property="og:description" content="前言java实现常见数据结构 内容包括：  链表（单链表、双链表） 栈、队列（单调栈、单调队列） 字符串（KMP、Trie、字符串hash、回文） 堆（增删查改、堆排序） 并查集（朴素、路径压缩）">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-12-26T18:56:18.000Z">
+<meta property="article:modified_time" content="2022-12-26T19:00:58.125Z">
+<meta property="article:author" content="Lucca Suen">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="竞赛">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://luccas.top/2022/12/27/%E5%B8%B8%E8%A7%81%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%AF%B9%E5%BA%94%E7%AE%97%E6%B3%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>常见数据结构及对应算法 | Lucca's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lucca's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">hello world</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://luccas.top/2022/12/27/%E5%B8%B8%E8%A7%81%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%AF%B9%E5%BA%94%E7%AE%97%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Lucca Suen">
+      <meta itemprop="description" content="苦等预言家 不如独立思考">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lucca's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          常见数据结构及对应算法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-12-27 02:56:18 / Modified: 03:00:58" itemprop="dateCreated datePublished" datetime="2022-12-27T02:56:18+08:00">2022-12-27</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>7.4k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>7 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>java实现常见数据结构</p>
+<p>内容包括：</p>
+<ul>
+<li>链表（单链表、双链表）</li>
+<li>栈、队列（单调栈、单调队列）</li>
+<li>字符串（KMP、Trie、字符串hash、回文）</li>
+<li>堆（增删查改、堆排序）</li>
+<li>并查集（朴素、路径压缩）</li>
+</ul>
+<span id="more"></span>
+
+
+
+<h2 id="链表"><a href="#链表" class="headerlink" title="链表"></a>链表</h2><h3 id="单链表-（数组模拟）"><a href="#单链表-（数组模拟）" class="headerlink" title="单链表 （数组模拟）"></a>单链表 （数组模拟）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> head, idx;	<span class="comment">// 头节点和使用的节点下标</span></span><br><span class="line"><span class="type">int</span>[] data = <span class="keyword">new</span> <span class="title class_">int</span>[N];	<span class="comment">// 数据</span></span><br><span class="line"><span class="type">int</span>[] next = <span class="keyword">new</span> <span class="title class_">int</span>[N];	<span class="comment">// 指针</span></span><br><span class="line"><span class="comment">// 初始化</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">init</span><span class="params">()</span> &#123;</span><br><span class="line">    head = -<span class="number">1</span>;</span><br><span class="line">    idx = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 链表头插入一个数a</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">insert</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">    data[idx] = x;</span><br><span class="line">    next[idx] = head;</span><br><span class="line">    head = idx++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将头节点删除</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">remove</span><span class="params">()</span> &#123;</span><br><span class="line">    head = next[head];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="双链表（数组模拟）"><a href="#双链表（数组模拟）" class="headerlink" title="双链表（数组模拟）"></a>双链表（数组模拟）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设置左右两个空节点，可以减少代码复杂度</span></span><br><span class="line"><span class="comment">// 左节点为0，右节点为1</span></span><br><span class="line"><span class="type">int</span>[] data = <span class="keyword">new</span> <span class="title class_">int</span>[N];	<span class="comment">// 数据</span></span><br><span class="line"><span class="type">int</span>[] l = <span class="keyword">new</span> <span class="title class_">int</span>[N];		<span class="comment">// 左指针</span></span><br><span class="line"><span class="type">int</span>[] r = <span class="keyword">new</span> <span class="title class_">int</span>[N];		<span class="comment">// 右指针</span></span><br><span class="line"><span class="comment">// 初始化</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">init</span><span class="params">()</span> &#123;</span><br><span class="line">    r[<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line">    l[<span class="number">1</span>] = <span class="number">0</span>;</span><br><span class="line">    idx = <span class="number">2</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 在节点k的右边插入一个数x，左边插入同理</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">insert</span><span class="params">(<span class="type">int</span> k, <span class="type">int</span> x)</span> &#123;</span><br><span class="line">    data[idx] = x;</span><br><span class="line">    l[idx] = k;		r[idx] = r[k];</span><br><span class="line">    l[r[k]] = idx;	r[k] = idx++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 删除节点k</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">remove</span><span class="params">(<span class="type">int</span> k)</span> &#123;</span><br><span class="line">    l[r[k]] = l[k];</span><br><span class="line">    r[l[k]] = r[k];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><h3 id="普通栈（数组模拟）"><a href="#普通栈（数组模拟）" class="headerlink" title="普通栈（数组模拟）"></a>普通栈（数组模拟）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] s = <span class="keyword">new</span> <span class="title class_">int</span>[N];</span><br><span class="line"><span class="type">int</span> <span class="variable">top</span> <span class="operator">=</span> -<span class="number">1</span>;</span><br><span class="line"><span class="comment">// 插入</span></span><br><span class="line">s[++top] = x;</span><br><span class="line"><span class="comment">// 弹出</span></span><br><span class="line">top--;</span><br><span class="line"><span class="comment">// 查看栈顶</span></span><br><span class="line">s[top];</span><br><span class="line"><span class="comment">// 判空</span></span><br><span class="line">top == -<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="单调栈（数组模拟）"><a href="#单调栈（数组模拟）" class="headerlink" title="单调栈（数组模拟）"></a>单调栈（数组模拟）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">top</span> <span class="operator">=</span> -<span class="number">1</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) &#123;</span><br><span class="line">	<span class="keyword">while</span> (top != -<span class="number">1</span> &amp;&amp; check(s[top], i)) top--;</span><br><span class="line">    s[++top] = i;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="队列（数组模拟）"><a href="#队列（数组模拟）" class="headerlink" title="队列（数组模拟）"></a>队列（数组模拟）</h2><h3 id="普通队列"><a href="#普通队列" class="headerlink" title="普通队列"></a>普通队列</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] q = <span class="keyword">new</span> <span class="title class_">int</span>[N];</span><br><span class="line"><span class="type">int</span> <span class="variable">hh</span> <span class="operator">=</span> <span class="number">0</span>, tt = -<span class="number">1</span>;</span><br><span class="line"><span class="comment">// 向队尾插入</span></span><br><span class="line">q[++tt] = x;</span><br><span class="line"><span class="comment">// 队头弹出</span></span><br><span class="line">hh++;</span><br><span class="line"><span class="comment">// 对头的值</span></span><br><span class="line">q[hh];</span><br><span class="line"><span class="comment">// 判空</span></span><br><span class="line">hh &lt; tt</span><br></pre></td></tr></table></figure>
+
+<h3 id="循环队列"><a href="#循环队列" class="headerlink" title="循环队列"></a>循环队列</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] q = <span class="keyword">new</span> <span class="title class_">int</span>[N];</span><br><span class="line"><span class="type">int</span> <span class="variable">hh</span> <span class="operator">=</span> <span class="number">0</span>, tt = <span class="number">0</span>;</span><br><span class="line"><span class="comment">// 向队尾插入一个数</span></span><br><span class="line">q[tt++] = x;</span><br><span class="line"><span class="keyword">if</span> (tt == N) tt = <span class="number">0</span>;</span><br><span class="line"><span class="comment">// 从队头弹出一个数</span></span><br><span class="line">hh++;</span><br><span class="line"><span class="keyword">if</span> (hh == N) hh = <span class="number">0</span>;</span><br><span class="line"><span class="comment">// 队头的值</span></span><br><span class="line">q[hh];</span><br><span class="line"><span class="comment">// 判断队列是否为空</span></span><br><span class="line">hh != tt</span><br></pre></td></tr></table></figure>
+
+<h3 id="单调队列"><a href="#单调队列" class="headerlink" title="单调队列"></a>单调队列</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">hh</span> <span class="operator">=</span> <span class="number">0</span>, tt = -<span class="number">1</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">    <span class="keyword">while</span> (hh &lt;= tt &amp;&amp; check_out(q[hh])) hh++;</span><br><span class="line">    <span class="keyword">while</span> (hh &lt;= tt &amp;&amp; check(q[tt], i)) tt--;</span><br><span class="line">    q[++tt] = i;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h2><h3 id="字串查找-KMP"><a href="#字串查找-KMP" class="headerlink" title="字串查找 KMP"></a>字串查找 KMP</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span>[] s = <span class="keyword">new</span> <span class="title class_">char</span>[n];</span><br><span class="line"><span class="type">char</span>[] p = <span class="keyword">new</span> <span class="title class_">char</span>[m];</span><br><span class="line"><span class="type">int</span>[] ne = <span class="keyword">new</span> <span class="title class_">int</span>[m+<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 计算next</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">2</span>, j = <span class="number">0</span>; i &lt;= m; i++) &#123;</span><br><span class="line">    <span class="keyword">while</span> (j &gt; <span class="number">0</span> &amp;&amp; p[i] != p[j+<span class="number">1</span>]) j = ne[j];</span><br><span class="line">    <span class="keyword">if</span> (p[i] == p[j+<span class="number">1</span>]) j++;</span><br><span class="line">    ne[i] = j;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 匹配</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>, j = <span class="number">0</span>; i &lt;= n; i++) &#123;</span><br><span class="line">    <span class="keyword">while</span> (j &gt; <span class="number">0</span> &amp;&amp; s[i] != p[j+<span class="number">1</span>]) j = ne[j];</span><br><span class="line">    <span class="keyword">if</span> (s[i] == p[j+<span class="number">1</span>]) j++;</span><br><span class="line">    <span class="keyword">if</span> (j == n) &#123;</span><br><span class="line">        j = ne[j];</span><br><span class="line">        <span class="comment">// 匹配成功之后要做的事</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Trie树"><a href="#Trie树" class="headerlink" title="Trie树"></a>Trie树</h3><h4 id="字符串统计"><a href="#字符串统计" class="headerlink" title="字符串统计"></a>字符串统计</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Trie</span> <span class="variable">root</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Trie</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Trie</span> &#123;</span><br><span class="line">    Trie[] tr = <span class="keyword">new</span> <span class="title class_">Trie</span>[<span class="number">26</span>];</span><br><span class="line">    <span class="type">int</span> cnt;</span><br><span class="line">    <span class="comment">// 需要什么属性就加什么属性</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">insert</span><span class="params">(String s)</span> &#123;</span><br><span class="line">    <span class="type">Trie</span> <span class="variable">node</span> <span class="operator">=</span> root;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; s.length(); i++) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">u</span> <span class="operator">=</span> s.charAt(i) - <span class="string">&#x27;a&#x27;</span>;</span><br><span class="line">        <span class="keyword">if</span> (node.tr[u] == <span class="literal">null</span>) node.tr[u] = <span class="keyword">new</span> <span class="title class_">Trie</span>();</span><br><span class="line">        node = node.tr[u];</span><br><span class="line">    &#125;</span><br><span class="line">    node.cnt++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">query</span><span class="params">(String s)</span> &#123;</span><br><span class="line">    <span class="type">Trie</span> <span class="variable">node</span> <span class="operator">=</span> root;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; s.length(); i++) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">u</span> <span class="operator">=</span> s.charAt(i) - <span class="string">&#x27;a&#x27;</span>;</span><br><span class="line">        node = node.tr[u];</span><br><span class="line">        <span class="keyword">if</span> (node == <span class="literal">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> node.cnt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="异或对判断"><a href="#异或对判断" class="headerlink" title="异或对判断"></a>异或对判断</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[] a = <span class="keyword">new</span> <span class="title class_">int</span>[n];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) insert((a[i] = sc.nextInt()));</span><br><span class="line">        </span><br><span class="line">        <span class="type">int</span> <span class="variable">ans</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) ans = Math.max(ans, query(a[i]));</span><br><span class="line">        System.out.println(ans);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Trie</span> <span class="variable">root</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Trie</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Trie</span> &#123;</span><br><span class="line">        Trie[] tr = <span class="keyword">new</span> <span class="title class_">Trie</span>[<span class="number">2</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">insert</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">        <span class="type">Trie</span> <span class="variable">t</span> <span class="operator">=</span> root;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">30</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">p</span> <span class="operator">=</span> x &gt;&gt; i &amp; <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span> (t.tr[p] == <span class="literal">null</span>)</span><br><span class="line">                t.tr[p] = <span class="keyword">new</span> <span class="title class_">Trie</span>();</span><br><span class="line">            t = t.tr[p];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">query</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">res</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="type">Trie</span> <span class="variable">t</span> <span class="operator">=</span> root;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">30</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">p</span> <span class="operator">=</span> x &gt;&gt; i &amp; <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span> (t.tr[p^<span class="number">1</span>] != <span class="literal">null</span>) &#123;</span><br><span class="line">                res += (<span class="number">1</span> &lt;&lt; i);</span><br><span class="line">                t = t.tr[p^<span class="number">1</span>];</span><br><span class="line">            &#125; <span class="keyword">else</span> t = t.tr[p];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="字符串hash"><a href="#字符串hash" class="headerlink" title="字符串hash"></a>字符串hash</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"><span class="keyword">import</span> java.math.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">BigInteger</span> <span class="variable">base</span> <span class="operator">=</span> BigInteger.valueOf(<span class="number">131</span>);</span><br><span class="line">    <span class="keyword">static</span> <span class="type">BigInteger</span> <span class="variable">mod</span> <span class="operator">=</span> BigInteger.valueOf(<span class="number">2</span>).pow(<span class="number">64</span>);</span><br><span class="line">    <span class="keyword">static</span> BigInteger[] s, p;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">char</span>[] cs;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> n, m;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        n = sc.nextInt();</span><br><span class="line">        m = sc.nextInt();</span><br><span class="line">        cs = (<span class="string">&quot;.&quot;</span> + sc.next()).toCharArray();</span><br><span class="line">        s = <span class="keyword">new</span> <span class="title class_">BigInteger</span>[n+<span class="number">1</span>];</span><br><span class="line">        p = <span class="keyword">new</span> <span class="title class_">BigInteger</span>[n+<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        s[<span class="number">0</span>] = BigInteger.valueOf(<span class="number">0</span>);</span><br><span class="line">        p[<span class="number">0</span>] = BigInteger.valueOf(<span class="number">1</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) &#123;</span><br><span class="line">            s[i] = s[i-<span class="number">1</span>].multiply(base)</span><br><span class="line">                    .add(BigInteger.valueOf(cs[i] - <span class="string">&#x27;a&#x27;</span>))</span><br><span class="line">                    .add(mod).mod(mod);</span><br><span class="line">            p[i] = p[i-<span class="number">1</span>].multiply(base);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (m-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">l1</span> <span class="operator">=</span> sc.nextInt(), r1 = sc.nextInt(), l2 = sc.nextInt(), r2 = sc.nextInt();</span><br><span class="line">            System.out.println(get(l1, r1).equals(get(l2, r2)) ? <span class="string">&quot;Yes&quot;</span> : <span class="string">&quot;No&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> BigInteger <span class="title function_">get</span><span class="params">(<span class="type">int</span> l, <span class="type">int</span> r)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> s[r].subtract(s[l-<span class="number">1</span>].multiply(p[r-l+<span class="number">1</span>])).add(mod).mod(mod);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="最长回文长度-Manacher"><a href="#最长回文长度-Manacher" class="headerlink" title="最长回文长度 Manacher"></a>最长回文长度 Manacher</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">manacher</span><span class="params">(<span class="type">char</span>[] cs)</span> &#123;</span><br><span class="line">    <span class="type">StringBuilder</span> <span class="variable">sb</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 添加占位符去除长度奇偶性影响</span></span><br><span class="line">    sb.append(<span class="string">&#x27;$&#x27;</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">char</span> c : cs) sb.append(<span class="string">&#x27;#&#x27;</span>).append(c);</span><br><span class="line">    sb.append(<span class="string">&quot;#@&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 长度改变</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">len</span> <span class="operator">=</span> cs.length * <span class="number">2</span> + <span class="number">1</span>;</span><br><span class="line">    cs = sb.toString().toCharArray();</span><br><span class="line">    <span class="comment">// maxv 最右回文串有边界， pos 最右回文串对称中心</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">maxv</span> <span class="operator">=</span> <span class="number">0</span>, pos = <span class="number">0</span>, ans = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// length[i] 以i为对称中心，最长的回文半径，如abcba 回文半径3</span></span><br><span class="line">    <span class="type">int</span>[] length = <span class="keyword">new</span> <span class="title class_">int</span>[cs.length];</span><br><span class="line">    <span class="comment">// 从1开始，因为 `abc` 已经编变成 `$#a#b#c$@`</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= len; i++) &#123;</span><br><span class="line">        <span class="comment">// i 位于maxv左侧，取 length[j] 和，maxv - i 最值</span></span><br><span class="line">        <span class="comment">// i 位于maxv右侧，保守估计，半径为1</span></span><br><span class="line">        length[i] = (maxv &gt; i ? Math.min(length[<span class="number">2</span> * pos - i], maxv - i) : <span class="number">1</span>);</span><br><span class="line">        <span class="comment">// 尝试中心扩展</span></span><br><span class="line">        <span class="keyword">while</span> (cs[i - length[i]] == cs[i + length[i]]) length[i]++;</span><br><span class="line">        <span class="comment">// 取最值</span></span><br><span class="line">        ans = Math.max(ans, length[i]);</span><br><span class="line">        <span class="comment">// 更新最右侧回文串</span></span><br><span class="line">        <span class="keyword">if</span> (length[i] + i &gt; maxv) &#123;</span><br><span class="line">            maxv = length[i] + i;</span><br><span class="line">            pos = i;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 处理过后的回文串半径刚好为原串的半径 + 1</span></span><br><span class="line">    <span class="keyword">return</span> ans - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><h3 id="堆排序"><a href="#堆排序" class="headerlink" title="堆排序"></a>堆排序</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> sc.nextInt(), m = sc.nextInt();</span><br><span class="line">        h = <span class="keyword">new</span> <span class="title class_">int</span>[n+<span class="number">1</span>];</span><br><span class="line">        size = n;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) h[i] = sc.nextInt();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> n / <span class="number">2</span>; i &gt; <span class="number">0</span>; i--) down(i);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; m; i++) &#123;</span><br><span class="line">            System.out.print(h[<span class="number">1</span>] + <span class="string">&quot; &quot;</span>);</span><br><span class="line">            h[<span class="number">1</span>] = h[size--];</span><br><span class="line">            down(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span>[] h;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> size;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">t</span> <span class="operator">=</span> h[a]; h[a] = h[b]; h[b] = t;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">down</span><span class="params">(<span class="type">int</span> u)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">t</span> <span class="operator">=</span> u;</span><br><span class="line">        <span class="keyword">if</span> (u * <span class="number">2</span> &lt;= size &amp;&amp; h[u * <span class="number">2</span>] &lt; h[t]) t = u * <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span> (u * <span class="number">2</span> + <span class="number">1</span> &lt;= size &amp;&amp; h[u * <span class="number">2</span> + <span class="number">1</span>] &lt; h[t]) t = u * <span class="number">2</span> + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span> (t != u) &#123;</span><br><span class="line">            swap(u, t);</span><br><span class="line">            down(t);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="堆模拟"><a href="#堆模拟" class="headerlink" title="堆模拟"></a>堆模拟</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// h[N]存储堆中的值, h[1]是堆顶，x的左儿子是2x, 右儿子是2x + 1</span></span><br><span class="line"><span class="comment">// ph[k]存储第k个插入的点在堆中的位置</span></span><br><span class="line"><span class="comment">// hp[k]存储堆中下标是k的点是第几个插入的</span></span><br><span class="line"><span class="type">int</span>[] h = <span class="keyword">new</span> <span class="title class_">int</span>[N], hp = <span class="keyword">new</span> <span class="title class_">int</span>[N], ph = <span class="keyword">new</span> <span class="title class_">int</span>[N];</span><br><span class="line"><span class="type">int</span> <span class="variable">size</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"><span class="keyword">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">    <span class="type">int</span> t;</span><br><span class="line">    t = h[a]; h[a] = h[b]; h[b] = t;</span><br><span class="line">    t = ph[hp[a]]; ph[hp[a]] = ph[hp[b]]; ph[hp[b]] = t;</span><br><span class="line">    t = hp[a]; hp[a] = hp[b]; hp[b] = t;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 下称</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">down</span><span class="params">(<span class="type">int</span> u)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">t</span> <span class="operator">=</span> u;</span><br><span class="line">    <span class="keyword">if</span> (u * <span class="number">2</span> &lt;= size &amp;&amp; h[u * <span class="number">2</span>] &lt; h[t]) t = u * <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">if</span> (u * <span class="number">2</span> + <span class="number">1</span> &lt;= size &amp;&amp; h[u * <span class="number">2</span> + <span class="number">1</span>] &lt; h[t]) t = u * <span class="number">2</span> + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (t != u) &#123;</span><br><span class="line">        swap(t, u);</span><br><span class="line">        down(t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 上浮</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">up</span><span class="params">(<span class="type">int</span> u)</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (u / <span class="number">2</span> &gt; <span class="number">0</span> &amp;&amp; h[u / <span class="number">2</span>] &gt; h[u]) &#123;</span><br><span class="line">        swap(u, u / <span class="number">2</span>);</span><br><span class="line">        u &gt;&gt;= <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 插入</span></span><br><span class="line">size++;</span><br><span class="line">m++;</span><br><span class="line">h[size] = sc.nextInt();</span><br><span class="line">ph[m] = size;</span><br><span class="line">hp[size] = m;</span><br><span class="line">up(size);</span><br><span class="line"><span class="comment">// 获取堆顶</span></span><br><span class="line">h[<span class="number">1</span>];</span><br><span class="line"><span class="comment">// 删除堆顶</span></span><br><span class="line">swap(<span class="number">1</span>, size--);</span><br><span class="line">down(<span class="number">1</span>);</span><br><span class="line"><span class="comment">// 删除第k个插入的元素</span></span><br><span class="line"><span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> sc.nextInt();</span><br><span class="line"><span class="type">int</span> <span class="variable">posk</span> <span class="operator">=</span> ph[k];</span><br><span class="line">swap(posk, size--);</span><br><span class="line">down(posk);</span><br><span class="line">up(posk);</span><br><span class="line"><span class="comment">// 修改第k个元素</span></span><br><span class="line"><span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> sc.nextInt(), x = sc.nextInt();</span><br><span class="line"><span class="type">int</span> <span class="variable">posk</span> <span class="operator">=</span> ph[k];</span><br><span class="line">h[posk] = x;</span><br><span class="line">down(posk);</span><br><span class="line">up(posk);</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="并查集"><a href="#并查集" class="headerlink" title="并查集"></a>并查集</h2><p><strong>朴素</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">find</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (x != fa[x]) x = fa[x];</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">merge</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">    fa[find(a)] = find(b);</span><br><span class="line">    <span class="comment">// 统计连通块包含元素个数</span></span><br><span class="line">    <span class="comment">// ab顺序和上面相反</span></span><br><span class="line">    <span class="comment">// size[find(b)] = find(a);</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>例题 食物链</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span>[] p, d;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> sc.nextInt(), k = sc.nextInt();</span><br><span class="line">        p = <span class="keyword">new</span> <span class="title class_">int</span>[n+<span class="number">1</span>];</span><br><span class="line">        d = <span class="keyword">new</span> <span class="title class_">int</span>[n+<span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) p[i] = i;</span><br><span class="line">        </span><br><span class="line">        <span class="type">int</span> <span class="variable">ans</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (k-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">D</span> <span class="operator">=</span> sc.nextInt(), x = sc.nextInt(), y = sc.nextInt();</span><br><span class="line">            <span class="keyword">if</span> (x &gt; n || y &gt; n) ans++;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">px</span> <span class="operator">=</span> find(x), py = find(y);</span><br><span class="line">                </span><br><span class="line">                <span class="keyword">if</span> (D == <span class="number">1</span>) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (px == py &amp;&amp; ((d[x] - d[y]) % <span class="number">3</span>) != <span class="number">0</span>) ans++;</span><br><span class="line">                    <span class="keyword">else</span> <span class="keyword">if</span> (px != py) &#123;</span><br><span class="line">                        p[px] = py;</span><br><span class="line">                        d[px] = d[y] - d[x];</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> (px == py &amp;&amp; ((d[x] - d[y] - <span class="number">1</span>) % <span class="number">3</span>) != <span class="number">0</span>) ans++;</span><br><span class="line">                    <span class="keyword">else</span> <span class="keyword">if</span> (px != py) &#123;</span><br><span class="line">                        p[px] = py;</span><br><span class="line">                        d[px] = d[y] - d[x] + <span class="number">1</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(ans);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">find</span><span class="params">(<span class="type">int</span> x)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (x != p[x]) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">t</span> <span class="operator">=</span> find(p[x]);</span><br><span class="line">            d[x] += d[p[x]];</span><br><span class="line">            p[x] = t;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> p[x];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%AE%97%E6%B3%95/" rel="tag"># 算法</a>
+              <a href="/tags/%E7%AB%9E%E8%B5%9B/" rel="tag"># 竞赛</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/12/27/%E5%9F%BA%E7%A1%80%E7%AE%97%E6%B3%95/" rel="prev" title="基础算法（排序、二分等）">
+      <i class="fa fa-chevron-left"></i> 基础算法（排序、二分等）
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC81NzY3NC8zNDEzNw=="></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%93%BE%E8%A1%A8"><span class="nav-number">2.</span> <span class="nav-text">链表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E9%93%BE%E8%A1%A8-%EF%BC%88%E6%95%B0%E7%BB%84%E6%A8%A1%E6%8B%9F%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">单链表 （数组模拟）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%8C%E9%93%BE%E8%A1%A8%EF%BC%88%E6%95%B0%E7%BB%84%E6%A8%A1%E6%8B%9F%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">双链表（数组模拟）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88"><span class="nav-number">3.</span> <span class="nav-text">栈</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%99%AE%E9%80%9A%E6%A0%88%EF%BC%88%E6%95%B0%E7%BB%84%E6%A8%A1%E6%8B%9F%EF%BC%89"><span class="nav-number">3.1.</span> <span class="nav-text">普通栈（数组模拟）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E8%B0%83%E6%A0%88%EF%BC%88%E6%95%B0%E7%BB%84%E6%A8%A1%E6%8B%9F%EF%BC%89"><span class="nav-number">3.2.</span> <span class="nav-text">单调栈（数组模拟）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%9F%E5%88%97%EF%BC%88%E6%95%B0%E7%BB%84%E6%A8%A1%E6%8B%9F%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">队列（数组模拟）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%99%AE%E9%80%9A%E9%98%9F%E5%88%97"><span class="nav-number">4.1.</span> <span class="nav-text">普通队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BE%AA%E7%8E%AF%E9%98%9F%E5%88%97"><span class="nav-number">4.2.</span> <span class="nav-text">循环队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E8%B0%83%E9%98%9F%E5%88%97"><span class="nav-number">4.3.</span> <span class="nav-text">单调队列</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="nav-number">5.</span> <span class="nav-text">字符串</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E4%B8%B2%E6%9F%A5%E6%89%BE-KMP"><span class="nav-number">5.1.</span> <span class="nav-text">字串查找 KMP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Trie%E6%A0%91"><span class="nav-number">5.2.</span> <span class="nav-text">Trie树</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%BB%9F%E8%AE%A1"><span class="nav-number">5.2.1.</span> <span class="nav-text">字符串统计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%82%E6%88%96%E5%AF%B9%E5%88%A4%E6%96%AD"><span class="nav-number">5.2.2.</span> <span class="nav-text">异或对判断</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2hash"><span class="nav-number">5.3.</span> <span class="nav-text">字符串hash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E9%95%BF%E5%9B%9E%E6%96%87%E9%95%BF%E5%BA%A6-Manacher"><span class="nav-number">5.4.</span> <span class="nav-text">最长回文长度 Manacher</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A0%86"><span class="nav-number">6.</span> <span class="nav-text">堆</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A0%86%E6%8E%92%E5%BA%8F"><span class="nav-number">6.1.</span> <span class="nav-text">堆排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A0%86%E6%A8%A1%E6%8B%9F"><span class="nav-number">6.2.</span> <span class="nav-text">堆模拟</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E6%9F%A5%E9%9B%86"><span class="nav-number">7.</span> <span class="nav-text">并查集</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Lucca Suen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Lucca Suen</p>
+  <div class="site-description" itemprop="description">苦等预言家 不如独立思考</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/lucca-suen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;lucca-suen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/luccasuen.dev@gmail.com" title="E-Mail → luccasuen.dev@gmail.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lucca Suen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>
