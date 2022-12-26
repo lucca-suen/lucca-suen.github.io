@@ -67,6 +67,129 @@
       </tags>
   </entry>
   <entry>
+    <title>SkyWalking部署流程</title>
+    <url>/2022/11/16/SkyWalking%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>项目中使用了Skywalking，记录下skywalking的部署流程，方便后续使用。</p>
+<span id="more"></span>
+
+
+
+<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>SkyWalking 架构图</p>
+<p><img src="https://files.catbox.moe/xxdu5z.png"></p>
+<p>整个架构分成四部分：</p>
+<p>1、上部分Agent ：负责从应用中，收集链路信息，发送给 SkyWalking OAP 服务器；</p>
+<p>2、下部分 SkyWalking OAP ：负责接收Agent发送的Tracing数据信息，然后进行分析(Analysis Core)，存储到外部存储器(Storage)，最终提供查询(Query)功能；</p>
+<p>3、右部分Storage：Tracing数据存储，目前支持ES、MySQL、Sharding Sphere、TiDB、H2多种存储器，目前采用较多的是ES，主要考虑是SkyWalking开发团队自己的生产环境采用ES为主；</p>
+<p>4、左部分SkyWalking UI：负责提供控台，查看链路等等；</p>
+<!--More-->
+
+<h2 id="单机版（使用h2内置数据库）"><a href="#单机版（使用h2内置数据库）" class="headerlink" title="单机版（使用h2内置数据库）"></a>单机版（使用h2内置数据库）</h2><h3 id="步骤分解"><a href="#步骤分解" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
+<ol>
+<li>下载SkyWalking软件包</li>
+<li>搭建一个SkyWalking OAP 和 SkyWalking UI服务</li>
+<li>启动一个Spring Boot 应用，并配置SkyWalking Agent</li>
+</ol>
+</blockquote>
+<h3 id="下载官方包（不介绍手动编译）"><a href="#下载官方包（不介绍手动编译）" class="headerlink" title="下载官方包（不介绍手动编译）"></a>下载官方包（不介绍手动编译）</h3><p>尾缀带es的表示支持es，版本自行选择</p>
+<h3 id="SktWalking-OAP搭建"><a href="#SktWalking-OAP搭建" class="headerlink" title="SktWalking OAP搭建"></a>SktWalking OAP搭建</h3><p>解压:（tar -zxvf xxxxx.tar.gz）</p>
+<p>存放到指定位置</p>
+<blockquote>
+<p>agent         #SkyWalking Agent</p>
+<p>bin             #执行脚本</p>
+<p>config        #SkyWalking OAP Server 配置文件</p>
+<p>LICENSE</p>
+<p>licenses</p>
+<p>NOTICE</p>
+<p>oap-libs     #SkyWalking OAP Server（后面可以在这导入数据库驱动）</p>
+<p>README.txt</p>
+<p>tools</p>
+<p>webapp     #SkyWalking UI</p>
+</blockquote>
+<h3 id="启动-SkyWalking-OAP服务"><a href="#启动-SkyWalking-OAP服务" class="headerlink" title="启动 SkyWalking OAP服务"></a>启动 SkyWalking OAP服务</h3><p>进入到对应文件夹下bin目录：./startup.sh</p>
+<p>打开该脚本发现对应脚本同时打开 oapservice.sh（skywalking-oap-server） 和 webapp.sh（skywalking-web-ui）</p>
+<p>换言之，可以单独启动（后面集群配置用得到）</p>
+<p>可以查看 log 目录下日志文件</p>
+<p>（以下端口参数皆可修改）</p>
+<p>skywalking-oap-server服务启动后会占用：11800 和 12800 两个端口；（可以在 config/application.yml  修改，这个文件里面存放 skywalking 配置，包括后面数据库修改）</p>
+<p>skywalking-web-ui服务会占用 8080 端口（可以在 webapp/webapp.yml 修改，这个配置文件可以修改ui界面的配置，后面集群配置用的到）</p>
+<blockquote>
+<p>server.port：SkyWalking UI服务端口，默认是8080；<br>collector.ribbon.listOfServers：SkyWalking OAP服务地址数组，SkyWalking UI界面的数据是通过请求SkyWalking OAP服务来获得（后面集群配置用的到）</p>
+</blockquote>
+<h3 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h3><h4 id="Jar包"><a href="#Jar包" class="headerlink" title="Jar包"></a>Jar包</h4><ol>
+<li><p>在启动程序前加一个-javaagent 参数也可完成对程序的跟踪；</p>
+</li>
+<li><p>编写shell脚本</p>
+</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/sh</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">SkyWalking Agent配置</span></span><br><span class="line">export SW_AGENT_NAME=11-springboot #Agent名字,一般使用`spring.application.name` </span><br><span class="line">export SW_AGENT_COLLECTOR_BACKEND_SERVICES=127.0.0.1:11800 #配置 Collector 地址。</span><br><span class="line">export SW_AGENT_SPAN_LIMIT=2000 #配置链路的最大Span数量，默认为 300。</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动 skywalking 探针</span></span><br><span class="line">export JAVA_AGENT=-javaagent:/usr/local/apache-skywalking-apm-bin/agent/skywalking-agent.jar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">jar启动</span></span><br><span class="line">java $JAVA_AGENT -jar 11-springboot-1.0.0.jar</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="IDEA"><a href="#IDEA" class="headerlink" title="IDEA"></a>IDEA</h4><p><img src="https://files.catbox.moe/v3rr8j.png"></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">-javaagent:D:/DevOps/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=diandian-starter,collector.backend_service=82.157.140.94:11800,plugin.toolkit.log.grpc.reporter.server_host=82.157.140.94,plugin.toolkit.log.grpc.reporter.server_port=11800</span><br><span class="line"></span><br><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=82.157.140.94:11800;SW_AGENT_NAME=diandian-starter</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="集成外部数据库（mysql）"><a href="#集成外部数据库（mysql）" class="headerlink" title="集成外部数据库（mysql）"></a>集成外部数据库（mysql）</h2><p>修改 config/application.yml 文件，将 storage 设置为 mysql</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">storage:</span></span><br><span class="line">  <span class="attr">selector:</span> <span class="string">$&#123;SW_STORAGE:mysql&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>填写 mysql 用户名密码</p>
+<p>按照单机版启动即可</p>
+<h2 id="集群版"><a href="#集群版" class="headerlink" title="集群版"></a>集群版</h2><p>由于skywalking只是负责监控程序，进行分布式链路跟踪的，所以skywalking OAP如果宕机了，完全不会影响正常业务。</p>
+<p>Skywalking 集群式将SkyWalking oap作为一个服务注册到 nacos（或其他注册中心，这里不做描述） 上。</p>
+<p>只要skywalking没有全部宕机，保证有一个skywalking oap在运行，就能继续运行</p>
+<h3 id="准备前提"><a href="#准备前提" class="headerlink" title="准备前提"></a>准备前提</h3><blockquote>
+<ol>
+<li>一个Nacos 或 集群</li>
+<li>一个数据库（mysql）或集群</li>
+<li>两个以上的 skywalking oap</li>
+<li>一个UI 或 集群</li>
+</ol>
+</blockquote>
+<h3 id="步骤分解-1"><a href="#步骤分解-1" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
+<ol>
+<li>解压两份以上 skywalking</li>
+<li>修改 application.yml 文件</li>
+<li>配置 UI（webapp.yml）</li>
+<li>wkywalking 启动</li>
+<li>程序启动</li>
+</ol>
+</blockquote>
+<h3 id="1-解压两份skywalking"><a href="#1-解压两份skywalking" class="headerlink" title="1.解压两份skywalking"></a>1.解压两份skywalking</h3><h3 id="2-修改-application-yml-文件"><a href="#2-修改-application-yml-文件" class="headerlink" title="2.修改 application.yml 文件"></a>2.修改 application.yml 文件</h3><p>/config/application.yml</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">cluster:</span></span><br><span class="line">  	<span class="attr">selector:</span> <span class="string">$&#123;SW_CLUSTER:nacos&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">nacos:</span> </span><br><span class="line">	<span class="attr">serviceName:</span> <span class="string">$&#123;SW_SERVICE_NAME:&quot;SkyWalking_OAP_Cluster&quot;&#125;</span> </span><br><span class="line">	<span class="attr">hostPort:</span> <span class="string">$&#123;SW_CLUSTER_NACOS_HOST_PORT:localhost:8848&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>第一台</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12801&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11801&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>第二台</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12802&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11802&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-配置UI"><a href="#3-配置UI" class="headerlink" title="3.配置UI"></a>3.配置UI</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">listOfServers:</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:12801,127.0.0.1:12802</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-启动-skywalking"><a href="#4-启动-skywalking" class="headerlink" title="4.启动 skywalking"></a>4.启动 skywalking</h3><p>启动两个以上oap，一个及以上UI</p>
+<h3 id="5-程序启动"><a href="#5-程序启动" class="headerlink" title="5.程序启动"></a>5.程序启动</h3><h4 id="Jar包启动"><a href="#Jar包启动" class="headerlink" title="Jar包启动"></a>Jar包启动</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">java -javaagent:xxxxx/agent/skywalking-agent.jar</span><br><span class="line">-Dskywalking.agent.service_name=gateway</span><br><span class="line">-Dskywalking.collector.backend_service=192.168.172.128:11801,192.168.172.128:11802</span><br><span class="line">-jar 你的jar包名</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="IDEA启动"><a href="#IDEA启动" class="headerlink" title="IDEA启动"></a>IDEA启动</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=192.168.172.128:11801,192.168.172.128:11802;SW_AGENT_NAME=11-springboot-idea</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>环境配置</category>
+      </categories>
+      <tags>
+        <tag>运维</tag>
+        <tag>微服务</tag>
+        <tag>中间件</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Vue单页快速开发笔记</title>
     <url>/2022/11/15/Vue%E5%8D%95%E9%A1%B5%E5%BF%AB%E9%80%9F%E5%BC%80%E5%8F%91%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>对前端以及Vue了解不多，记录了下如何快速搭建一个常见单页网站的基本框架。</p>
@@ -246,129 +369,6 @@
       <tags>
         <tag>运维</tag>
         <tag>服务器</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>SkyWalking部署流程</title>
-    <url>/2022/11/16/SkyWalking%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>项目中使用了Skywalking，记录下skywalking的部署流程，方便后续使用。</p>
-<span id="more"></span>
-
-
-
-<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>SkyWalking 架构图</p>
-<p><img src="https://files.catbox.moe/xxdu5z.png"></p>
-<p>整个架构分成四部分：</p>
-<p>1、上部分Agent ：负责从应用中，收集链路信息，发送给 SkyWalking OAP 服务器；</p>
-<p>2、下部分 SkyWalking OAP ：负责接收Agent发送的Tracing数据信息，然后进行分析(Analysis Core)，存储到外部存储器(Storage)，最终提供查询(Query)功能；</p>
-<p>3、右部分Storage：Tracing数据存储，目前支持ES、MySQL、Sharding Sphere、TiDB、H2多种存储器，目前采用较多的是ES，主要考虑是SkyWalking开发团队自己的生产环境采用ES为主；</p>
-<p>4、左部分SkyWalking UI：负责提供控台，查看链路等等；</p>
-<!--More-->
-
-<h2 id="单机版（使用h2内置数据库）"><a href="#单机版（使用h2内置数据库）" class="headerlink" title="单机版（使用h2内置数据库）"></a>单机版（使用h2内置数据库）</h2><h3 id="步骤分解"><a href="#步骤分解" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
-<ol>
-<li>下载SkyWalking软件包</li>
-<li>搭建一个SkyWalking OAP 和 SkyWalking UI服务</li>
-<li>启动一个Spring Boot 应用，并配置SkyWalking Agent</li>
-</ol>
-</blockquote>
-<h3 id="下载官方包（不介绍手动编译）"><a href="#下载官方包（不介绍手动编译）" class="headerlink" title="下载官方包（不介绍手动编译）"></a>下载官方包（不介绍手动编译）</h3><p>尾缀带es的表示支持es，版本自行选择</p>
-<h3 id="SktWalking-OAP搭建"><a href="#SktWalking-OAP搭建" class="headerlink" title="SktWalking OAP搭建"></a>SktWalking OAP搭建</h3><p>解压:（tar -zxvf xxxxx.tar.gz）</p>
-<p>存放到指定位置</p>
-<blockquote>
-<p>agent         #SkyWalking Agent</p>
-<p>bin             #执行脚本</p>
-<p>config        #SkyWalking OAP Server 配置文件</p>
-<p>LICENSE</p>
-<p>licenses</p>
-<p>NOTICE</p>
-<p>oap-libs     #SkyWalking OAP Server（后面可以在这导入数据库驱动）</p>
-<p>README.txt</p>
-<p>tools</p>
-<p>webapp     #SkyWalking UI</p>
-</blockquote>
-<h3 id="启动-SkyWalking-OAP服务"><a href="#启动-SkyWalking-OAP服务" class="headerlink" title="启动 SkyWalking OAP服务"></a>启动 SkyWalking OAP服务</h3><p>进入到对应文件夹下bin目录：./startup.sh</p>
-<p>打开该脚本发现对应脚本同时打开 oapservice.sh（skywalking-oap-server） 和 webapp.sh（skywalking-web-ui）</p>
-<p>换言之，可以单独启动（后面集群配置用得到）</p>
-<p>可以查看 log 目录下日志文件</p>
-<p>（以下端口参数皆可修改）</p>
-<p>skywalking-oap-server服务启动后会占用：11800 和 12800 两个端口；（可以在 config/application.yml  修改，这个文件里面存放 skywalking 配置，包括后面数据库修改）</p>
-<p>skywalking-web-ui服务会占用 8080 端口（可以在 webapp/webapp.yml 修改，这个配置文件可以修改ui界面的配置，后面集群配置用的到）</p>
-<blockquote>
-<p>server.port：SkyWalking UI服务端口，默认是8080；<br>collector.ribbon.listOfServers：SkyWalking OAP服务地址数组，SkyWalking UI界面的数据是通过请求SkyWalking OAP服务来获得（后面集群配置用的到）</p>
-</blockquote>
-<h3 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h3><h4 id="Jar包"><a href="#Jar包" class="headerlink" title="Jar包"></a>Jar包</h4><ol>
-<li><p>在启动程序前加一个-javaagent 参数也可完成对程序的跟踪；</p>
-</li>
-<li><p>编写shell脚本</p>
-</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/sh</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">SkyWalking Agent配置</span></span><br><span class="line">export SW_AGENT_NAME=11-springboot #Agent名字,一般使用`spring.application.name` </span><br><span class="line">export SW_AGENT_COLLECTOR_BACKEND_SERVICES=127.0.0.1:11800 #配置 Collector 地址。</span><br><span class="line">export SW_AGENT_SPAN_LIMIT=2000 #配置链路的最大Span数量，默认为 300。</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动 skywalking 探针</span></span><br><span class="line">export JAVA_AGENT=-javaagent:/usr/local/apache-skywalking-apm-bin/agent/skywalking-agent.jar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">jar启动</span></span><br><span class="line">java $JAVA_AGENT -jar 11-springboot-1.0.0.jar</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="IDEA"><a href="#IDEA" class="headerlink" title="IDEA"></a>IDEA</h4><p><img src="https://files.catbox.moe/v3rr8j.png"></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">-javaagent:D:/DevOps/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=diandian-starter,collector.backend_service=82.157.140.94:11800,plugin.toolkit.log.grpc.reporter.server_host=82.157.140.94,plugin.toolkit.log.grpc.reporter.server_port=11800</span><br><span class="line"></span><br><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=82.157.140.94:11800;SW_AGENT_NAME=diandian-starter</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="集成外部数据库（mysql）"><a href="#集成外部数据库（mysql）" class="headerlink" title="集成外部数据库（mysql）"></a>集成外部数据库（mysql）</h2><p>修改 config/application.yml 文件，将 storage 设置为 mysql</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">storage:</span></span><br><span class="line">  <span class="attr">selector:</span> <span class="string">$&#123;SW_STORAGE:mysql&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>填写 mysql 用户名密码</p>
-<p>按照单机版启动即可</p>
-<h2 id="集群版"><a href="#集群版" class="headerlink" title="集群版"></a>集群版</h2><p>由于skywalking只是负责监控程序，进行分布式链路跟踪的，所以skywalking OAP如果宕机了，完全不会影响正常业务。</p>
-<p>Skywalking 集群式将SkyWalking oap作为一个服务注册到 nacos（或其他注册中心，这里不做描述） 上。</p>
-<p>只要skywalking没有全部宕机，保证有一个skywalking oap在运行，就能继续运行</p>
-<h3 id="准备前提"><a href="#准备前提" class="headerlink" title="准备前提"></a>准备前提</h3><blockquote>
-<ol>
-<li>一个Nacos 或 集群</li>
-<li>一个数据库（mysql）或集群</li>
-<li>两个以上的 skywalking oap</li>
-<li>一个UI 或 集群</li>
-</ol>
-</blockquote>
-<h3 id="步骤分解-1"><a href="#步骤分解-1" class="headerlink" title="步骤分解"></a>步骤分解</h3><blockquote>
-<ol>
-<li>解压两份以上 skywalking</li>
-<li>修改 application.yml 文件</li>
-<li>配置 UI（webapp.yml）</li>
-<li>wkywalking 启动</li>
-<li>程序启动</li>
-</ol>
-</blockquote>
-<h3 id="1-解压两份skywalking"><a href="#1-解压两份skywalking" class="headerlink" title="1.解压两份skywalking"></a>1.解压两份skywalking</h3><h3 id="2-修改-application-yml-文件"><a href="#2-修改-application-yml-文件" class="headerlink" title="2.修改 application.yml 文件"></a>2.修改 application.yml 文件</h3><p>/config/application.yml</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">cluster:</span></span><br><span class="line">  	<span class="attr">selector:</span> <span class="string">$&#123;SW_CLUSTER:nacos&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">nacos:</span> </span><br><span class="line">	<span class="attr">serviceName:</span> <span class="string">$&#123;SW_SERVICE_NAME:&quot;SkyWalking_OAP_Cluster&quot;&#125;</span> </span><br><span class="line">	<span class="attr">hostPort:</span> <span class="string">$&#123;SW_CLUSTER_NACOS_HOST_PORT:localhost:8848&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>第一台</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12801&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11801&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>第二台</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">restHost:</span> <span class="string">$&#123;SW_CORE_REST_HOST:0.0.0.0&#125;</span></span><br><span class="line"><span class="attr">restPort:</span> <span class="string">$&#123;SW_CORE_REST_PORT:12802&#125;</span></span><br><span class="line"><span class="attr">gRPCPort:</span> <span class="string">$&#123;SW_CORE_GRPC_PORT:11802&#125;</span></span><br><span class="line"><span class="attr">gRPCHost:</span> <span class="string">$&#123;SW_CORE_GRPC_HOST:0.0.0.0&#125;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="3-配置UI"><a href="#3-配置UI" class="headerlink" title="3.配置UI"></a>3.配置UI</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">listOfServers:</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:12801,127.0.0.1:12802</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="4-启动-skywalking"><a href="#4-启动-skywalking" class="headerlink" title="4.启动 skywalking"></a>4.启动 skywalking</h3><p>启动两个以上oap，一个及以上UI</p>
-<h3 id="5-程序启动"><a href="#5-程序启动" class="headerlink" title="5.程序启动"></a>5.程序启动</h3><h4 id="Jar包启动"><a href="#Jar包启动" class="headerlink" title="Jar包启动"></a>Jar包启动</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">java -javaagent:xxxxx/agent/skywalking-agent.jar</span><br><span class="line">-Dskywalking.agent.service_name=gateway</span><br><span class="line">-Dskywalking.collector.backend_service=192.168.172.128:11801,192.168.172.128:11802</span><br><span class="line">-jar 你的jar包名</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="IDEA启动"><a href="#IDEA启动" class="headerlink" title="IDEA启动"></a>IDEA启动</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=192.168.172.128:11801,192.168.172.128:11802;SW_AGENT_NAME=11-springboot-idea</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>环境配置</category>
-      </categories>
-      <tags>
-        <tag>运维</tag>
-        <tag>微服务</tag>
-        <tag>中间件</tag>
       </tags>
   </entry>
   <entry>
