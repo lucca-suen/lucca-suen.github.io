@@ -30,7 +30,7 @@
 <meta property="og:description" content="前言Java实现最短路算法模板 时间复杂度参数意义：N个点，M条边  多源最短路：Floyd O(N^3) 单源最短路 全是正边权 朴素 Dijkstra O(N^2) 堆优化 Dijkstra O(MlogN)   存在负边权 Bellman-Ford O(NM)【特殊问题：要求k步之内到达终点】 SPFA O(NM)【平均O(M)】">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-12-26T20:45:50.000Z">
-<meta property="article:modified_time" content="2022-12-26T20:58:46.606Z">
+<meta property="article:modified_time" content="2022-12-26T21:11:41.229Z">
 <meta property="article:author" content="Lucca Suen">
 <meta property="article:tag" content="算法">
 <meta property="article:tag" content="图论">
@@ -222,7 +222,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2022-12-27 04:45:50 / Modified: 04:58:46" itemprop="dateCreated datePublished" datetime="2022-12-27T04:45:50+08:00">2022-12-27</time>
+              <time title="Created: 2022-12-27 04:45:50 / Modified: 05:11:41" itemprop="dateCreated datePublished" datetime="2022-12-27T04:45:50+08:00">2022-12-27</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -288,12 +288,12 @@
 
 
 
-<h2 id="①-Floyd算法-多源"><a href="#①-Floyd算法-多源" class="headerlink" title="① Floyd算法 (多源)"></a>① Floyd算法 (多源)</h2><p>松弛思想</p>
+<h2 id="Floyd算法-多源"><a href="#Floyd算法-多源" class="headerlink" title="Floyd算法 (多源)"></a>Floyd算法 (多源)</h2><p>松弛思想</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> sc.nextInt(), m = sc.nextInt(), k = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[][] map = <span class="keyword">new</span> <span class="title class_">int</span>[n+<span class="number">1</span>][n+<span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) &#123;</span><br><span class="line">            Arrays.fill(map[i], <span class="number">0x3f3f3f3f</span>);</span><br><span class="line">            <span class="comment">// 注意点1：每个点到它本身距离为0</span></span><br><span class="line">            map[i][i] = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; m; i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> sc.nextInt(), b = sc.nextInt(), w = sc.nextInt();</span><br><span class="line">            <span class="comment">// 注意点2：可能有重边（两个点之间有多个边）</span></span><br><span class="line">            map[a][b] = Math.min(map[a][b], w);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">t</span> <span class="operator">=</span> <span class="number">1</span>; t &lt;= n; t++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">1</span>; j &lt;= n; j++) &#123;</span><br><span class="line">                    map[i][j] = Math.min(map[i][j], map[i][t] + map[t][j]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; k; i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> sc.nextInt(), b = sc.nextInt();</span><br><span class="line">            <span class="comment">// 注意点3：有负边权，注意范围 &gt; 0x3f3f3f3f / 2</span></span><br><span class="line">            <span class="keyword">if</span> (map[a][b] &gt; <span class="number">0x3f3f3f3f</span> / <span class="number">2</span>) System.out.println(<span class="string">&quot;impossible&quot;</span>);</span><br><span class="line">            <span class="keyword">else</span> System.out.println(map[a][b]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="②-Dijkstra（无负权边）"><a href="#②-Dijkstra（无负权边）" class="headerlink" title="② Dijkstra（无负权边）"></a>② Dijkstra（无负权边）</h2><ol>
+<h2 id="Dijkstra（无负权边）"><a href="#Dijkstra（无负权边）" class="headerlink" title="Dijkstra（无负权边）"></a>Dijkstra（无负权边）</h2><ol>
 <li>找到从起点出发最近的点</li>
 <li>使用该点更新从起点到其他点的距离</li>
 <li>本质是贪心 + BFS</li>
@@ -302,7 +302,7 @@
 
 
 
-<h2 id="③-Dijkstra-优先队列优化（稀疏图）"><a href="#③-Dijkstra-优先队列优化（稀疏图）" class="headerlink" title="③ Dijkstra 优先队列优化（稀疏图）"></a>③ Dijkstra 优先队列优化（稀疏图）</h2><ol>
+<h2 id="Dijkstra-优先队列优化（稀疏图）"><a href="#Dijkstra-优先队列优化（稀疏图）" class="headerlink" title="Dijkstra 优先队列优化（稀疏图）"></a>Dijkstra 优先队列优化（稀疏图）</h2><ol>
 <li>使用优先队列优化 “查找从起点出发最近的点” 这一步骤</li>
 <li>队列中可能存在冗余，使用vis标记判断</li>
 </ol>
@@ -310,7 +310,7 @@
 
 
 
-<h2 id="④-Bellman-Ford算法-（负权边）"><a href="#④-Bellman-Ford算法-（负权边）" class="headerlink" title="④ Bellman-Ford算法 （负权边）"></a>④ Bellman-Ford算法 （负权边）</h2><ol>
+<h2 id="Bellman-Ford算法-（负权边）"><a href="#Bellman-Ford算法-（负权边）" class="headerlink" title="Bellman-Ford算法 （负权边）"></a>Bellman-Ford算法 （负权边）</h2><ol>
 <li>松弛思想</li>
 <li>循环k次，每次遍历遍历所有边，判断是否能使用改边松弛起点和终点的距离</li>
 <li>k的意义是不超过k步可以从起点到终点</li>
@@ -321,7 +321,7 @@
 <p><strong>特殊题型（限制在k步之内【k小于点数，否则说明有环】）</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> sc.nextInt(), m = sc.nextInt(), k = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[][] e = <span class="keyword">new</span> <span class="title class_">int</span>[m][<span class="number">3</span>]; <span class="comment">// e[i] = &#123;a, b, w&#125;</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; m; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; <span class="number">3</span>; j++) &#123;</span><br><span class="line">                e[i][j] = sc.nextInt();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="type">int</span>[] dis = <span class="keyword">new</span> <span class="title class_">int</span>[n+<span class="number">1</span>];</span><br><span class="line">        Arrays.fill(dis, <span class="number">0x3f3f3f3f</span>);</span><br><span class="line">        dis[<span class="number">1</span>] = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; k; i++) &#123;</span><br><span class="line">            <span class="comment">// 不同点1：需要备份，否则同一个循环中的dis可能会相互影响</span></span><br><span class="line">            <span class="type">int</span>[] old = Arrays.copyOf(dis, n + <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; m; j++) &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> e[j][<span class="number">0</span>], b = e[j][<span class="number">1</span>], w = e[j][<span class="number">2</span>];</span><br><span class="line">                <span class="keyword">if</span> (dis[b] &gt; old[a] + w) &#123;</span><br><span class="line">                    dis[b] = old[a] + w;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 不同点2，可能存在负边，所以需要特判 dis[n] &gt; 0x3f3f3f3f / 2</span></span><br><span class="line">        <span class="keyword">if</span> (dis[n] &gt; <span class="number">0x3f3f3f3f</span> / <span class="number">2</span>) System.out.print(<span class="string">&quot;impossible&quot;</span>);</span><br><span class="line">        <span class="keyword">else</span> System.out.print(dis[n]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="⑤-SPFA算法"><a href="#⑤-SPFA算法" class="headerlink" title="⑤ SPFA算法"></a>⑤ SPFA算法</h2><ol>
+<h2 id="SPFA算法"><a href="#SPFA算法" class="headerlink" title="SPFA算法"></a>SPFA算法</h2><ol>
 <li>是 Bellman-Ford 算法使用队列优化的结果</li>
 <li>根据 bellman-ford 只有 dis 改变，才会引起其他dis的改变</li>
 <li>所以使用队列存储发生变化的 dis，也就是从起点触发最短距离发生变化的点</li>
@@ -352,8 +352,8 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/12/27/%E5%9B%BE%E7%9A%84%E9%81%8D%E5%8E%86%E3%80%81%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="prev" title="图的遍历、拓扑排序">
-      <i class="fa fa-chevron-left"></i> 图的遍历、拓扑排序
+    <a href="/2022/12/27/%E5%9B%BE%E7%9A%84%E9%81%8D%E5%8E%86+%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="prev" title="图的遍历+拓扑排序">
+      <i class="fa fa-chevron-left"></i> 图的遍历+拓扑排序
     </a></div>
       <div class="post-nav-item">
     <a href="/2022/12/27/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91%E7%AE%97%E6%B3%95/" rel="next" title="最小生成树算法">
@@ -422,7 +422,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A0-Floyd%E7%AE%97%E6%B3%95-%E5%A4%9A%E6%BA%90"><span class="nav-number">2.</span> <span class="nav-text">① Floyd算法 (多源)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A1-Dijkstra%EF%BC%88%E6%97%A0%E8%B4%9F%E6%9D%83%E8%BE%B9%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">② Dijkstra（无负权边）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A2-Dijkstra-%E4%BC%98%E5%85%88%E9%98%9F%E5%88%97%E4%BC%98%E5%8C%96%EF%BC%88%E7%A8%80%E7%96%8F%E5%9B%BE%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">③ Dijkstra 优先队列优化（稀疏图）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A3-Bellman-Ford%E7%AE%97%E6%B3%95-%EF%BC%88%E8%B4%9F%E6%9D%83%E8%BE%B9%EF%BC%89"><span class="nav-number">5.</span> <span class="nav-text">④ Bellman-Ford算法 （负权边）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%91%A4-SPFA%E7%AE%97%E6%B3%95"><span class="nav-number">6.</span> <span class="nav-text">⑤ SPFA算法</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Floyd%E7%AE%97%E6%B3%95-%E5%A4%9A%E6%BA%90"><span class="nav-number">2.</span> <span class="nav-text">Floyd算法 (多源)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dijkstra%EF%BC%88%E6%97%A0%E8%B4%9F%E6%9D%83%E8%BE%B9%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">Dijkstra（无负权边）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dijkstra-%E4%BC%98%E5%85%88%E9%98%9F%E5%88%97%E4%BC%98%E5%8C%96%EF%BC%88%E7%A8%80%E7%96%8F%E5%9B%BE%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">Dijkstra 优先队列优化（稀疏图）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bellman-Ford%E7%AE%97%E6%B3%95-%EF%BC%88%E8%B4%9F%E6%9D%83%E8%BE%B9%EF%BC%89"><span class="nav-number">5.</span> <span class="nav-text">Bellman-Ford算法 （负权边）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SPFA%E7%AE%97%E6%B3%95"><span class="nav-number">6.</span> <span class="nav-text">SPFA算法</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -438,7 +438,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">13</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
