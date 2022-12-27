@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.svg">
+  <link rel="mask-icon" href="/images/favicon.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"luccas.top","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言java实现动态规划模板 内容包括：  动态规划的思考方式 背包问题 01背包 完全背包 多重背包 分组背包">
+<meta property="og:type" content="article">
+<meta property="og:title" content="背包问题">
+<meta property="og:url" content="http://luccas.top/2022/12/27/%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="Lucca&#39;s Blog">
+<meta property="og:description" content="前言java实现动态规划模板 内容包括：  动态规划的思考方式 背包问题 01背包 完全背包 多重背包 分组背包">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://gitee.com/luccas/figure-bed/raw/master/1672125382491.png">
+<meta property="og:image" content="https://gitee.com/luccas/figure-bed/raw/master/1672133144040.png">
+<meta property="article:published_time" content="2022-12-27T13:15:43.000Z">
+<meta property="article:modified_time" content="2022-12-27T13:18:16.107Z">
+<meta property="article:author" content="Lucca Suen">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="动态规划">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/luccas/figure-bed/raw/master/1672125382491.png">
+
+<link rel="canonical" href="http://luccas.top/2022/12/27/%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>背包问题 | Lucca's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Lucca's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">hello world</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://luccas.top/2022/12/27/%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Lucca Suen">
+      <meta itemprop="description" content="苦等预言家 不如独立思考">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lucca's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          背包问题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-12-27 21:15:43 / Modified: 21:18:16" itemprop="dateCreated datePublished" datetime="2022-12-27T21:15:43+08:00">2022-12-27</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>6.8k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>java实现动态规划模板</p>
+<p>内容包括：</p>
+<ul>
+<li>动态规划的思考方式</li>
+<li>背包问题<ul>
+<li>01背包</li>
+<li>完全背包</li>
+<li>多重背包</li>
+<li>分组背包</li>
+</ul>
+</li>
+</ul>
+<span id="more"></span>
+
+
+
+<h2 id="动态规划思考方式"><a href="#动态规划思考方式" class="headerlink" title="动态规划思考方式"></a>动态规划思考方式</h2><p><strong>闫氏DP分析法</strong></p>
+<p><img src="https://gitee.com/luccas/figure-bed/raw/master/1672125382491.png"></p>
+<ul>
+<li>状态表示：定义表达式来解释问题的集合<ul>
+<li>集合：具体的含义</li>
+<li>属性：常见有三种：最大值、最小值、数量</li>
+</ul>
+</li>
+<li>状态计算：如何把当前集合划分成更小的子集，使得每一个集合都可以算出来（用前面更小的状态表示出来）<ul>
+<li>不重：同一个状态不能重复出现</li>
+<li>不漏：不能漏掉任何一个元素</li>
+</ul>
+</li>
+<li>状态初始化：循环如何开始，初始状态设置</li>
+</ul>
+<h2 id="背包问题"><a href="#背包问题" class="headerlink" title="背包问题"></a>背包问题</h2><p>给定一个固定大小的背包，给定若干物品，每个物品有自己的体积和价值</p>
+<p>一般求在规定背包空间内（不一定要装满背包），能积累的最大价值</p>
+<h3 id="01背包"><a href="#01背包" class="headerlink" title="01背包"></a>01背包</h3><blockquote>
+<p>每件物品最多只用一次</p>
+</blockquote>
+<ul>
+<li><p>状态表示：$f_{i,j}$</p>
+<ul>
+<li>集合：考虑前i个物品，空间大小为j时的价值</li>
+<li>属性：最大值</li>
+</ul>
+</li>
+<li><p>状态计算：<br>  $$<br>  f_{i,j} = max(f_{i-1,j}, f_{i-1,j-v_i} + w_i);<br>  $$<br>  第 $i$ 个物品，容量为 $j$ 时，其取值从以下两个集合而来</p>
+<ul>
+<li>要么不取，其价值等于前 $i-1$ 个物品，大小为 $j$ 的价值，化简后为 $f_{i-1,j}$</li>
+<li>要么取，其价值等于前 $i-1$ 个物品，大小为 $j-v_i$ 的价值，同时还要补上自身的价值 $w_i$ ，化简后为 $f_{i-1,j-v_i} + w_i$</li>
+</ul>
+</li>
+<li><p>状态初始化：全为0</p>
+</li>
+</ul>
+<h4 id="朴素版"><a href="#朴素版" class="headerlink" title="朴素版"></a>朴素版</h4><ul>
+<li></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">N</span> <span class="operator">=</span> sc.nextInt(), V = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[][] f = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>][V+<span class="number">1</span>];</span><br><span class="line">        <span class="type">int</span>[] v = <span class="keyword">new</span> <span class="title class_">int</span>[N], w = <span class="keyword">new</span> <span class="title class_">int</span>[N];</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">            v[i] = sc.nextInt();</span><br><span class="line">            w[i] = sc.nextInt();</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> V; j &gt;= <span class="number">0</span>; j--) &#123;</span><br><span class="line">                f[i][j] = f[i-<span class="number">1</span>][j];</span><br><span class="line">                <span class="comment">// 如果没有空间优化，这里必须要把上一层也复制过来之后才可以考虑更新的事</span></span><br><span class="line">                <span class="keyword">if</span> (j &gt; v[i]) f[i][j] = Math.max(f[i][j], f[i-<span class="number">1</span>][j - v[i]] + w[i]);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        System.out.print(f[V]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="一维滚动数组-空间优化"><a href="#一维滚动数组-空间优化" class="headerlink" title="一维滚动数组 空间优化"></a>一维滚动数组 空间优化</h4><ul>
+<li>每次只涉及到 $i$ 与 $i-1$ 层的数组，可以使用滚动数组优化空间复杂度</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">N</span> <span class="operator">=</span> sc.nextInt(), V = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[] f = <span class="keyword">new</span> <span class="title class_">int</span>[V+<span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> sc.nextInt(), w = sc.nextInt();</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> V; j &gt;= v; j--) &#123;</span><br><span class="line">                f[j] = Math.max(f[j], f[j - v] + w);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.print(f[V]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="完全背包"><a href="#完全背包" class="headerlink" title="完全背包"></a>完全背包</h3><blockquote>
+<p>每件物品有无限个</p>
+</blockquote>
+<h4 id="简化为01背包"><a href="#简化为01背包" class="headerlink" title="简化为01背包"></a>简化为01背包</h4><ul>
+<li><p>状态表示：$f_{i,j}$</p>
+<ul>
+<li>集合：考虑前i个物品，空间大小为j时的价值</li>
+<li>属性：最大值</li>
+</ul>
+</li>
+<li><p>状态计算：<br>  $$<br>  f_{i,j} = max(f_{i-1,j}, f_{i-1,j-v_i} + w_i, …, f_{i-1,j-k * v_i} + k * w_i);<br>  $$<br>  第 $i$ 个物品，容量为 $j$ 时，其取值从以下k个集合而来</p>
+<ul>
+<li>要么不取，其价值等于前 $i-1$ 个物品，大小为 $j$ 的价值，化简后为 $f_{i-1, j}$</li>
+<li>要么取 $1$ 个，其价值等于前 $i-1$ 个物品，大小为 $j-v_i$ 的价值，同时还要补上自身的价值 $w_i$ ，化简后为 $f_{i,j - v_i} + w_i$</li>
+<li>要么取 $2$ 个，其价值等于前 $i-1$ 个物品，大小为 $j-2*v_i$ 的价值，同时还要补上自身的价值 $2 * w_i$ ，化简后为 $f_{i, j - 2 * v_i} + 2 * w_i$</li>
+<li>…</li>
+<li>要么取 $k$ 个 $(k * v_i &lt;= j)$，其价值等于前 $i-1$ 个物品，大小为 $j-k<em>v_i$ 的价值，同时还要补上自身的价值 $k</em>w_i$ ，化简后为 $f_{i, j - k * v_i} + k * w_i$</li>
+</ul>
+</li>
+<li><p>状态初始化：全为0</p>
+</li>
+<li><p><font color=red>每次只涉及到 $i$ 与 $i-1$ 层的数组，可以使用滚动数组优化空间复杂度</font></p>
+</li>
+</ul>
+<p>写法与01背包相同，但是除了枚举物品 $i$ 和容量 $j$ 的循环之外，还要枚举物品个数 $k$</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">N</span> <span class="operator">=</span> sc.nextInt(), V = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[][] f = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>][V+<span class="number">1</span>];</span><br><span class="line">        <span class="type">int</span>[] v = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>];</span><br><span class="line">        <span class="type">int</span>[] w = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">            v[i] = sc.nextInt();</span><br><span class="line">            w[i] = sc.nextInt();</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt;= V; j++) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> <span class="number">0</span>; k * v[i] &lt;= j; k++) &#123;</span><br><span class="line">                    f[i][j] = Math.max(f[i-<span class="number">1</span>][j], f[i-<span class="number">1</span>][j - k * v[i]] + k * w[i]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        System.out.print(f[N][V]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="表达式等价替换-优化"><a href="#表达式等价替换-优化" class="headerlink" title="表达式等价替换 优化"></a>表达式等价替换 优化</h4><p>我们对DP进行等价替换优化时，优先考虑在原有状态的参数上进行操作</p>
+<p>根据以下等式：<br>$$<br>f_{i,j} = max(f_{i-1,j}, f_{i-1,j-v_i} + w_i, …, f_{i-1,j-k * v_i} + k * w_i)<br>$$<br>和<br>$$<br>f_{i,j-v_i} = max(f_{i-1,j-v_i}, f_{i-1,j-2*v_i} + w_i, …, f_{i-1,j-(k+1) * v_i} + k * w_i)<br>$$<br>推出<br>$$<br>f_{i, j} = max(f_{i-1, j}, f_{i, j - v_i} + w_i)<br>$$<br><font color=red>注意，完全背包问题没有物品个数限制，且 $k * v_i &lt;= V$，所以对于$f_{i,j}$，它的k能取到的数字肯定刚好比$f_{i,j-v_i}$ 要多1，因为两者刚好差1.</font></p>
+<p>代码从三层循环优化为两层循环，太秀了~</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">N</span> <span class="operator">=</span> sc.nextInt(), V = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[][] f = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>][V+<span class="number">1</span>];</span><br><span class="line">        <span class="type">int</span>[] v = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>];</span><br><span class="line">        <span class="type">int</span>[] w = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            v[i] = sc.nextInt();</span><br><span class="line">            w[i] = sc.nextInt();</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt;= V; j++) &#123;</span><br><span class="line">                <span class="comment">// 如果没有空间优化，这里必须要把上一层也复制过来之后才可以考虑更新</span></span><br><span class="line">                f[i][j] = f[i-<span class="number">1</span>][j];</span><br><span class="line">                <span class="keyword">if</span> (j &gt;= v[i]) f[i][j] = Math.max(f[i][j], f[i][j - v[i]] + w[i]);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        System.out.print(f[N][V]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="表达式-一维数组优化"><a href="#表达式-一维数组优化" class="headerlink" title="表达式 + 一维数组优化"></a>表达式 + 一维数组优化</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">N</span> <span class="operator">=</span> sc.nextInt(), V = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[] f = <span class="keyword">new</span> <span class="title class_">int</span>[V+<span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> sc.nextInt(), w = sc.nextInt();</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> v; j &lt;= V; j++) &#123;</span><br><span class="line">                f[j] = Math.max(f[j], f[j - v] + w);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.print(f[V]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="多重背包问题"><a href="#多重背包问题" class="headerlink" title="多重背包问题"></a>多重背包问题</h3><blockquote>
+<p>每个物品个数不同</p>
+</blockquote>
+<h4 id="朴素版-1"><a href="#朴素版-1" class="headerlink" title="朴素版"></a>朴素版</h4><ul>
+<li>分析思路类比 <strong>完全背包方法1</strong></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">N</span> <span class="operator">=</span> sc.nextInt(), V = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[][] f = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>][V+<span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> sc.nextInt(), w = sc.nextInt(), s = sc.nextInt();</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt;= V; j++) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> <span class="number">0</span>; k &lt;= s &amp;&amp; k * v &lt;= j; k++) &#123;</span><br><span class="line">                    f[i][j] = Math.max(f[i][j], f[i-<span class="number">1</span>][j - k * v] + k * w);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.print(f[N][V]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="无法使用表达式优化"><a href="#无法使用表达式优化" class="headerlink" title="无法使用表达式优化"></a>无法使用表达式优化</h4><p>借鉴完全背包的思路，从表达式入手，不同于完全背包，多重背包每个物品的个数不是无限的。</p>
+<p>完全背包每次计算的上限是 $最大个数 = 总容量 / 物品容量$</p>
+<p>多重背包的最大个数如果大于上式计算出的最大个数，可以视为完全背包，从而优化。</p>
+<p>但如果其最大个数小于完全背包计算出的理论最大个数，那么<br>$$<br>f_{i,j} = max(f_{i-1,j}, f_{i-1,j-v_i} + w_i, …, f_{i-1,j-k * v_i} + k * w_i)<br>$$<br>和<br>$$<br>f_{i,j-v_i} = max(f_{i-1,j-v_i}, f_{i-1,j-2*v_i} + w_i, …, f_{i-1,j-(k+1) * v_i} + k * w_i)<br>$$<br>就会刚好差一项</p>
+<p><img src="https://gitee.com/luccas/figure-bed/raw/master/1672133144040.png"></p>
+<p><font color=red>结论：不能使用表达式推导达到优化的目的</font></p>
+<h4 id="二进制优化"><a href="#二进制优化" class="headerlink" title="二进制优化"></a>二进制优化</h4><p><font color=red>性质：对于任意一个数 N，我们可以拆成 $1,2,4,…,2^k, N-2^k (2^k &lt; N)$，并可以用这些数凑出从 0 到 N 中的任意一个数</font></p>
+<p>一开始，我们的目的是，在个数为s的物品中找出其最优取值，使得最终方案得到的价值最大。</p>
+<p>由于上述性质，0-N 之间任何数字都可以由 $1,2,4,…,2^k, N-2^k$ 构成，我称之为解构数。</p>
+<p>那么，可以把0-N之间每个数字，想象成一个位图，每一位代表每一个解构数是否被取。</p>
+<p>问题转变成了针对解构数的01背包，也就是寻找如何组合解构数才能构成最优解。</p>
+<ol>
+<li>将每个物品分情况讨论<ol>
+<li>如果其最大数量 * 物品占用空间 &gt; 最大空间，表示数量是用不完的，等价于完全背包</li>
+<li>如果其最大数量 * 物品占用空间 &lt; 最大空间，表示数量是可以全部用完的，按照上述性质，将N拆分成若干物品，使用01背包判断每个物品取与不取，计算最大权值</li>
+</ol>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">N</span> <span class="operator">=</span> sc.nextInt(), V = sc.nextInt();</span><br><span class="line">        <span class="comment">// 1维优化</span></span><br><span class="line">        <span class="type">int</span>[] f = <span class="keyword">new</span> <span class="title class_">int</span>[V+<span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> sc.nextInt(), w = sc.nextInt(), s = sc.nextInt();</span><br><span class="line">            <span class="keyword">if</span> (s * v &gt;= V) completeBag(v, w, V, f);</span><br><span class="line">            <span class="keyword">else</span> multiBag(v, w, s, V, f);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.print(f[V]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 二进制优化 多重背包</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">multiBag</span><span class="params">(<span class="type">int</span> v, <span class="type">int</span> w, <span class="type">int</span> s, <span class="type">int</span> V, <span class="type">int</span>[] f)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span> (k &lt;= s) &#123;</span><br><span class="line">            zeroOneBag(k * v, k * w, V, f);</span><br><span class="line">            s -= k;</span><br><span class="line">            k &lt;&lt;= <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        zeroOneBag(s * v, s * w, V, f);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 01背包</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">zeroOneBag</span><span class="params">(<span class="type">int</span> v, <span class="type">int</span> w, <span class="type">int</span> V, <span class="type">int</span>[] f)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> V; j &gt;= v; j--)</span><br><span class="line">            f[j] = Math.max(f[j], f[j - v] + w);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 完全背包</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">completeBag</span><span class="params">(<span class="type">int</span> v, <span class="type">int</span> w, <span class="type">int</span> V, <span class="type">int</span>[] f)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> v; j &lt;= V; j++)</span><br><span class="line">            f[j] = Math.max(f[j], f[j - v] + w);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="分组背包问题"><a href="#分组背包问题" class="headerlink" title="分组背包问题"></a>分组背包问题</h3><blockquote>
+<p>物品分成不同组，每组只能选一个物品</p>
+</blockquote>
+<ul>
+<li><p>状态表示：$f_{i,j}$</p>
+<ul>
+<li>集合：考虑前 $i$ 组物品，空间大小为 $j$ 时的价值</li>
+<li>属性：最大值</li>
+</ul>
+</li>
+<li><p>状态计算：<br>  $$<br>  f_{i,j} = max(f_{i-1,j}, f_{i-1,j-v_k} + w_k, …, f_{i-1,j- * v_k} + w_k)<br>  $$<br>  第 $i$ 组物品，容量为 $j$ 时，其取值从以下k个集合而来</p>
+<ul>
+<li>要么不取，其价值等于前 $i-1$ 个物品，大小为 $j$ 的价值，化简后为 $f_{i-1, j}$</li>
+<li>要么取第 $1$ 个，其价值等于前 $i-1$ 个物品，大小为 $j-v_1$ 的价值，同时还要补上自身的价值 $w_1$ ，化简后为 $f_{i,j - v_1} + w_1$</li>
+<li>要么取第 $2$ 个，其价值等于前 $i-1$ 个物品，大小为 $j-v_2$ 的价值，同时还要补上自身的价值 $w_2$ ，化简后为 $f_{i,j - v_2} + w_2$</li>
+<li>…</li>
+<li>要么取第 $k$ 个，其价值等于前 $i-1$ 个物品，大小为 $j-v_k$ 的价值，同时还要补上自身的价值 $w_k$ ，化简后为 $f_{i,j - v_k} + w_k$</li>
+</ul>
+</li>
+<li><p>状态初始化：全为0</p>
+</li>
+<li><p><font color=red>每次只涉及到 $i$ 与 $i-1$ 层的数组，可以使用滚动数组优化空间复杂度</font></p>
+</li>
+<li><p><font color=red>一组中最值的计算放在一起的，所以同一组内物品的遍历需要放在最内层，否则计算的就不是一个集合内的最值</font></p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">N</span> <span class="operator">=</span> sc.nextInt(), V = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[] f = <span class="keyword">new</span> <span class="title class_">int</span>[V+<span class="number">1</span>];</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">s</span> <span class="operator">=</span> sc.nextInt();</span><br><span class="line">            <span class="type">int</span>[] v = <span class="keyword">new</span> <span class="title class_">int</span>[s], w = <span class="keyword">new</span> <span class="title class_">int</span>[s];</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> <span class="number">0</span>; k &lt; s; k++) &#123;</span><br><span class="line">                v[k] = sc.nextInt();</span><br><span class="line">                w[k] = sc.nextInt();</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> V; j &gt;= <span class="number">0</span>; j--) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> <span class="number">0</span>; k &lt; s; k++) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (j &gt;= v[k]) f[j] = Math.max(f[j], f[j - v[k]] + w[k]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.print(f[V]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%AE%97%E6%B3%95/" rel="tag"># 算法</a>
+              <a href="/tags/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/" rel="tag"># 动态规划</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/12/27/%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9B%B8%E5%85%B3%E7%AE%97%E6%B3%95/" rel="prev" title="字符串相关算法">
+      <i class="fa fa-chevron-left"></i> 字符串相关算法
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC81NzY3NC8zNDEzNw=="></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92%E6%80%9D%E8%80%83%E6%96%B9%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">动态规划思考方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">背包问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#01%E8%83%8C%E5%8C%85"><span class="nav-number">3.1.</span> <span class="nav-text">01背包</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%B4%E7%B4%A0%E7%89%88"><span class="nav-number">3.1.1.</span> <span class="nav-text">朴素版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E7%BB%B4%E6%BB%9A%E5%8A%A8%E6%95%B0%E7%BB%84-%E7%A9%BA%E9%97%B4%E4%BC%98%E5%8C%96"><span class="nav-number">3.1.2.</span> <span class="nav-text">一维滚动数组 空间优化</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8C%E5%85%A8%E8%83%8C%E5%8C%85"><span class="nav-number">3.2.</span> <span class="nav-text">完全背包</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%80%E5%8C%96%E4%B8%BA01%E8%83%8C%E5%8C%85"><span class="nav-number">3.2.1.</span> <span class="nav-text">简化为01背包</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%AD%89%E4%BB%B7%E6%9B%BF%E6%8D%A2-%E4%BC%98%E5%8C%96"><span class="nav-number">3.2.2.</span> <span class="nav-text">表达式等价替换 优化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A8%E8%BE%BE%E5%BC%8F-%E4%B8%80%E7%BB%B4%E6%95%B0%E7%BB%84%E4%BC%98%E5%8C%96"><span class="nav-number">3.2.3.</span> <span class="nav-text">表达式 + 一维数组优化</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E9%87%8D%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98"><span class="nav-number">3.3.</span> <span class="nav-text">多重背包问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%B4%E7%B4%A0%E7%89%88-1"><span class="nav-number">3.3.1.</span> <span class="nav-text">朴素版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E6%B3%95%E4%BD%BF%E7%94%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%BC%98%E5%8C%96"><span class="nav-number">3.3.2.</span> <span class="nav-text">无法使用表达式优化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%8C%E8%BF%9B%E5%88%B6%E4%BC%98%E5%8C%96"><span class="nav-number">3.3.3.</span> <span class="nav-text">二进制优化</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E7%BB%84%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98"><span class="nav-number">3.4.</span> <span class="nav-text">分组背包问题</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Lucca Suen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Lucca Suen</p>
+  <div class="site-description" itemprop="description">苦等预言家 不如独立思考</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/lucca-suen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;lucca-suen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/luccasuen.dev@gmail.com" title="E-Mail → luccasuen.dev@gmail.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lucca Suen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>
