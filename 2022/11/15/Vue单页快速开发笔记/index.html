@@ -19,7 +19,7 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"luccas.top","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"luccas.top","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="前言对前端以及Vue了解不多，记录了下如何快速搭建一个常见单页网站的基本框架。 还有使用中的一些比较通用的模块。">
@@ -276,36 +276,28 @@
         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>对前端以及Vue了解不多，记录了下如何快速搭建一个常见单页网站的基本框架。</p>
 <p>还有使用中的一些比较通用的模块。</p>
 <span id="more"></span>
-
-
-
 <h2 id="项目文件结构"><a href="#项目文件结构" class="headerlink" title="项目文件结构"></a>项目文件结构</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">project</span><br><span class="line"> ├── node_modules			// 依赖</span><br><span class="line"> ├── public					// favicon 和 index.html</span><br><span class="line"> ├── src</span><br><span class="line"> │   ├── assets				// 资源 (images：存一些图片, script：存一些js脚本)</span><br><span class="line"> │   ├── components			// 组件 (通用组件抽象)</span><br><span class="line"> │   ├── router				// vue-router 路由 (index.js配置路由)</span><br><span class="line"> │   ├── store				// vuex 状态存储 (index.js记录vuex存储的状态)</span><br><span class="line"> │   ├── views				// 页面</span><br><span class="line"> │   ├── App.vue			// 主页面</span><br><span class="line"> │   └── main.js			// 主函数</span><br><span class="line"> ├── babel.config.js		// 以下配置文件多数情况不用修改，现用现查</span><br><span class="line"> ├── jsconfig.json</span><br><span class="line"> ├── package-lock.json</span><br><span class="line"> ├── package.json</span><br><span class="line"> └── vue.config.js</span><br></pre></td></tr></table></figure>
-
 <p>以下所有文件路径中@表示项目根路径</p>
 <h2 id="基础框架搭建"><a href="#基础框架搭建" class="headerlink" title="基础框架搭建"></a>基础框架搭建</h2><ol>
-<li><p>设计整体布局（单页，可复用）</p>
-</li>
-<li><p><code>@/components</code> 下创建 NavBar 组件（顶部导航栏）</p>
-<ul>
+<li>设计整体布局（单页，可复用）</li>
+<li><code>@/components</code> 下创建 NavBar 组件（顶部导航栏）<ul>
 <li>BootStrap 有现成的 NavBar</li>
 <li>自定义编写结构和样式</li>
 <li>实现点击后高亮：<ul>
 <li>使用 vue-route 的 useRoute </li>
-<li>setup -&gt; routeName = compute(() =&gt; route.name) –&gt; return { routeName }</li>
+<li>setup -&gt; routeName = compute(() =&gt; route.name) —&gt; return { routeName }</li>
 <li>template 使用 <code>:class=&quot;routeName == xxx ? &#39;高亮样式&#39; : &#39;未高亮样式&#39; &quot;</code></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><code>App.vue</code> 导入并使用 NavBar 组件</p>
-<ol>
+<li><code>App.vue</code> 导入并使用 NavBar 组件<ol>
 <li>import NavBar from “@/components/NavBar.vue”;</li>
 <li>components: NavBar</li>
 <li>template 使用   <code>&lt;NavBar&gt;&lt;/NavBar&gt;</code></li>
 </ol>
 </li>
-<li><p><code>@/views</code> 创建页面 xxx.vue</p>
-<ul>
+<li><code>@/views</code> 创建页面 xxx.vue<ul>
 <li>分好文件夹，方便后期开发</li>
 <li>有几个模块就重复几次</li>
 </ul>
@@ -320,8 +312,7 @@
 <li>不合法网页：’/:catchAll(.*)’</li>
 </ul>
 </li>
-<li><p>vue.before</p>
-</li>
+<li>vue.before</li>
 </ul>
 </li>
 <li><p><code>@/components</code> 下创建 ContentField 组件（主页内容框）</p>
@@ -332,22 +323,16 @@
 <li>自定义样式</li>
 </ul>
 </li>
-<li><p>在每一页中都使用 ContentField 组件：import -&gt; components -&gt; template 使用 &lt;组件名&gt;&lt;/组件名&gt;</p>
-</li>
+<li>在每一页中都使用 ContentField 组件：import -&gt; components -&gt; template 使用 &lt;组件名&gt;&lt;/组件名&gt;</li>
 </ol>
 <h2 id="常用公共模块"><a href="#常用公共模块" class="headerlink" title="常用公共模块"></a>常用公共模块</h2><h3 id="vue-router"><a href="#vue-router" class="headerlink" title="vue-router"></a>vue-router</h3><p>路由组件，负责解析你输入的路径并返回给指定的页面。</p>
 <p>主要在<code>@/router/index.js</code>下编写路由组件</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 导入创建路由需要使用的组件</span></span><br><span class="line"><span class="keyword">import</span> &#123; createRouter, createWebHistory &#125; <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span></span><br><span class="line"><span class="comment">// 导入要路由的vue页面</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">XXView</span> <span class="keyword">from</span> <span class="string">&#x27;@/views/modelA/XXView&#x27;</span></span><br><span class="line"><span class="comment">// 用作权限控制，状态判断（登录态等）</span></span><br><span class="line"><span class="keyword">import</span> store <span class="keyword">from</span> <span class="string">&#x27;@/store/index&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> routes = [</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">path</span>: <span class="string">&quot;/&quot;</span>,			<span class="comment">// 路径</span></span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;home&quot;</span>,		<span class="comment">// 名字</span></span><br><span class="line">    <span class="attr">redirect</span>: <span class="string">&quot;/pk/&quot;</span>,	<span class="comment">// 重定向</span></span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">path</span>: <span class="string">&quot;/pagepath/&quot;</span>,</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;pk_index&quot;</span>,</span><br><span class="line">    <span class="attr">component</span>: <span class="title class_">PKIndexView</span>,	<span class="comment">// 实际组件</span></span><br><span class="line">    <span class="attr">meta</span>: &#123;					<span class="comment">// 额外定义的附带数据（如是否验证登录态）</span></span><br><span class="line">      <span class="attr">requestAuth</span>: <span class="literal">true</span>,</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">path</span>: <span class="string">&quot;/404/&quot;</span>,			<span class="comment">// 404页面</span></span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;404&quot;</span>,</span><br><span class="line">    <span class="attr">component</span>: <span class="title class_">NotFound</span>,</span><br><span class="line">    <span class="attr">meta</span>: &#123;</span><br><span class="line">      <span class="attr">requestAuth</span>: <span class="literal">false</span>,</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">path</span>: <span class="string">&quot;/:catchAll(.*)&quot;</span>,	<span class="comment">// 拦截其他不合法的路径</span></span><br><span class="line">    <span class="attr">redirect</span>: <span class="string">&quot;/404/&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">]</span><br><span class="line"><span class="comment">// 真正创建路由</span></span><br><span class="line"><span class="keyword">const</span> router = <span class="title function_">createRouter</span>(&#123;</span><br><span class="line">  <span class="attr">history</span>: <span class="title function_">createWebHistory</span>(),</span><br><span class="line">  routes</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 每次请求前执行，这里用作登录态判断</span></span><br><span class="line">router.<span class="title function_">beforeEach</span>(<span class="function">(<span class="params">to, <span class="keyword">from</span>, next</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (登录态条件) &#123;</span><br><span class="line">    <span class="comment">// 跳转到登录页面</span></span><br><span class="line">    <span class="title function_">next</span>(&#123;<span class="attr">name</span>: <span class="string">&#x27;登录页面的name&#x27;</span>&#125;)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_">next</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 导出才能背其他组件所使用</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> router</span><br></pre></td></tr></table></figure>
-
-
-
 <h3 id="vuex"><a href="#vuex" class="headerlink" title="vuex"></a>vuex</h3><p>全局状态记录组件，一般用来记录一些需要在全局使用的状态变量。</p>
 <p>除了变量，他还封装了一些函数用来操作这些变量，详见代码。</p>
 <p>主要在<code>@/vuex/index.js</code>下编写状态记录</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createStore &#125; <span class="keyword">from</span> <span class="string">&#x27;vuex&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ModuleUser</span> <span class="keyword">from</span> <span class="string">&#x27;./user&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">createStore</span>(&#123;</span><br><span class="line">  <span class="attr">state</span>: &#123;&#125;,</span><br><span class="line">  <span class="attr">getters</span>: &#123;&#125;,		<span class="comment">// 暂时没用上</span></span><br><span class="line">  <span class="attr">mutations</span>: &#123;&#125;,	<span class="comment">// 同步函数集合，在外部需要使用store.commit(&#x27;函数名&#x27;, 入参)来调用</span></span><br><span class="line">  <span class="attr">actions</span>: &#123;&#125;,		<span class="comment">// 异步函数集合，在外部需要使用store.dispatch(&#x27;函数名&#x27;, 入参)来调用</span></span><br><span class="line">  <span class="attr">modules</span>: &#123;		<span class="comment">// 编写一些子模块，放在这里统一管理</span></span><br><span class="line">    <span class="attr">user</span>: <span class="title class_">ModuleUser</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> $ <span class="keyword">from</span> <span class="string">&#x27;jquery&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">    <span class="attr">state</span>: &#123;</span><br><span class="line">        <span class="attr">id</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">getters</span>: &#123;&#125;,</span><br><span class="line">    <span class="attr">mutations</span>: &#123;</span><br><span class="line">        <span class="title function_">updateUser</span>(<span class="params">state, user</span>) &#123;</span><br><span class="line">            state.<span class="property">id</span> = user.<span class="property">id</span>;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="title function_">updateToken</span>(<span class="params">state, token</span>) &#123;</span><br><span class="line">            state.<span class="property">token</span> = token;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="title function_">logout</span>(<span class="params">state</span>) &#123;</span><br><span class="line">            state.<span class="property">id</span> = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">actions</span>: &#123;</span><br><span class="line">        <span class="title function_">login</span>(<span class="params">context, data</span>) &#123;</span><br><span class="line">            context.<span class="title function_">commit</span>(<span class="string">&quot;updateToken&quot;</span>, res.<span class="property">token</span>);</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="title function_">getinfo</span>(<span class="params">context, data</span>) &#123;</span><br><span class="line">            context.<span class="title function_">commit</span>(<span class="string">&quot;updateUser&quot;</span>, &#123;</span><br><span class="line">                ...res,</span><br><span class="line">                <span class="attr">is_login</span>: <span class="literal">true</span>,</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="title function_">logout</span>(<span class="params">context</span>) &#123;</span><br><span class="line">            context.<span class="title function_">commit</span>(<span class="string">&quot;logout&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">modules</span>: &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
 
     </div>
 
@@ -477,7 +462,7 @@
         <a href="https://github.com/lucca-suen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;lucca-suen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
       </span>
       <span class="links-of-author-item">
-        <a href="/luccasuen.dev@gmail.com" title="E-Mail → luccasuen.dev@gmail.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+        <a href="mailto:luccasuen.dev@gmail.com" title="E-Mail → mailto:luccasuen.dev@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
       </span>
   </div>
 
@@ -581,6 +566,8 @@
 
 
 
+
+  
 
   
 
