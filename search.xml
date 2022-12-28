@@ -9,7 +9,7 @@
 <h2 id="解压安装"><a href="#解压安装" class="headerlink" title="解压安装"></a>解压安装</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tar -zxvf mysql-5.7.26-linux-glibc2.12-x86_64.tar.gz #解压</span><br><span class="line"></span><br><span class="line">mv mysql-5.7.26-linux-glibc2.12-x86_64 /usr/local/mysql #启动目录、重命名</span><br></pre></td></tr></table></figure>
 <h2 id="创建mysql用户-组"><a href="#创建mysql用户-组" class="headerlink" title="创建mysql用户/组"></a>创建mysql用户/组</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /usr/local/mysql</span><br><span class="line"></span><br><span class="line">mkdir data</span><br><span class="line"></span><br><span class="line">groupadd mysql</span><br><span class="line"></span><br><span class="line">useradd -g mysql mysql -s /sbin/nologin -d /usr/local/mysql</span><br><span class="line"></span><br><span class="line">chown -R mysql:mysql /usr/local/mysql #将mysql目录所属用户指定为mysql用户</span><br></pre></td></tr></table></figure>
 <h2 id="初始化mysql"><a href="#初始化mysql" class="headerlink" title="初始化mysql"></a>初始化mysql</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">bin/mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data</span><br></pre></td></tr></table></figure>
-<font color=red>记住上面命令产生的临时密码，后面会用到。</font>
+<font color="red">记住上面命令产生的临时密码，后面会用到。</font>
 
 <h3 id="创建RSA-private-key："><a href="#创建RSA-private-key：" class="headerlink" title="创建RSA private key："></a>创建RSA private key：</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">bin/mysql_ssl_rsa_setup --datadir=/usr/local/mysql/data</span><br></pre></td></tr></table></figure>
 <h2 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cp -rf /usr/local/mysql/support-files/mysql.server /etc/init.d/mysql</span><br><span class="line"></span><br><span class="line">cp /etc/my.cnf /etc/my.cnf.bak</span><br><span class="line"></span><br><span class="line">vim /etc/my.cnf</span><br></pre></td></tr></table></figure>
@@ -44,7 +44,7 @@
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>项目中使用了Skywalking，记录下skywalking的部署流程，方便后续使用。</p>
 <span id="more"></span>
 <h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>SkyWalking 架构图</p>
-<p><img src="https://files.catbox.moe/xxdu5z.png" alt=""></p>
+<p><img src="https://files.catbox.moe/xxdu5z.png" alt></p>
 <p>整个架构分成四部分：</p>
 <p>1、上部分Agent ：负责从应用中，收集链路信息，发送给 SkyWalking OAP 服务器；</p>
 <p>2、下部分 SkyWalking OAP ：负责接收Agent发送的Tracing数据信息，然后进行分析(Analysis Core)，存储到外部存储器(Storage)，最终提供查询(Query)功能；</p>
@@ -90,7 +90,7 @@
 </li>
 </ol>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/sh</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">SkyWalking Agent配置</span></span><br><span class="line">export SW_AGENT_NAME=11-springboot #Agent名字,一般使用`spring.application.name` </span><br><span class="line">export SW_AGENT_COLLECTOR_BACKEND_SERVICES=127.0.0.1:11800 #配置 Collector 地址。</span><br><span class="line">export SW_AGENT_SPAN_LIMIT=2000 #配置链路的最大Span数量，默认为 300。</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动 skywalking 探针</span></span><br><span class="line">export JAVA_AGENT=-javaagent:/usr/local/apache-skywalking-apm-bin/agent/skywalking-agent.jar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">jar启动</span></span><br><span class="line">java $JAVA_AGENT -jar 11-springboot-1.0.0.jar</span><br></pre></td></tr></table></figure>
-<h4 id="IDEA"><a href="#IDEA" class="headerlink" title="IDEA"></a>IDEA</h4><p><img src="https://files.catbox.moe/v3rr8j.png" alt=""></p>
+<h4 id="IDEA"><a href="#IDEA" class="headerlink" title="IDEA"></a>IDEA</h4><p><img src="https://files.catbox.moe/v3rr8j.png" alt></p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">-javaagent:D:/DevOps/apache-skywalking-apm-bin/agent/skywalking-agent.jar=agent.service_name=diandian-starter,collector.backend_service=82.157.140.94:11800,plugin.toolkit.log.grpc.reporter.server_host=82.157.140.94,plugin.toolkit.log.grpc.reporter.server_port=11800</span><br><span class="line"></span><br><span class="line">SW_AGENT_COLLECTOR_BACKEND_SERVICES=82.157.140.94:11800;SW_AGENT_NAME=diandian-starter</span><br></pre></td></tr></table></figure>
 <h2 id="集成外部数据库（mysql）"><a href="#集成外部数据库（mysql）" class="headerlink" title="集成外部数据库（mysql）"></a>集成外部数据库（mysql）</h2><p>修改 config/application.yml 文件，将 storage 设置为 mysql</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">storage:</span></span><br><span class="line">  <span class="attr">selector:</span> <span class="string">$&#123;SW_STORAGE:mysql&#125;</span></span><br></pre></td></tr></table></figure>
@@ -315,7 +315,7 @@
 </ol>
 </li>
 </ol>
-<p><img src="https://gitee.com/luccas/figure-bed/raw/master/二分图算法.png" alt=""></p>
+<p><img src="https://gitee.com/luccas/figure-bed/raw/master/二分图算法.png" alt></p>
 <h2 id="染色法（判断二分图）"><a href="#染色法（判断二分图）" class="headerlink" title="染色法（判断二分图）"></a>染色法（判断二分图）</h2><ol>
 <li>对每个还没染色的点进行染色</li>
 <li>以这个点为根节点，将其相邻的点染成另一个颜色，并对每个点递归这个操作</li>
@@ -620,7 +620,7 @@
 </ul>
 <span id="more"></span>
 <h2 id="动态规划思考方式"><a href="#动态规划思考方式" class="headerlink" title="动态规划思考方式"></a>动态规划思考方式</h2><p><strong>闫氏DP分析法</strong></p>
-<p><img src="https://gitee.com/luccas/figure-bed/raw/master/1672125382491.png" alt=""></p>
+<p><img src="https://gitee.com/luccas/figure-bed/raw/master/1672125382491.png" alt></p>
 <ul>
 <li>状态表示：定义表达式来解释问题的集合<ul>
 <li>集合：具体的含义</li>
@@ -685,7 +685,7 @@
 </li>
 <li><p>状态初始化：全为0</p>
 </li>
-<li><font color=red>每次只涉及到 $i$ 与 $i-1$ 层的数组，可以使用滚动数组优化空间复杂度</font>
+<li><font color="red">每次只涉及到 $i$ 与 $i-1$ 层的数组，可以使用滚动数组优化空间复杂度</font>
 
 </li>
 </ul>
@@ -698,7 +698,7 @@ f_{i,j} = max(f_{i-1,j}, f_{i-1,j-v_i} + w_i, ..., f_{i-1,j-k * v_i} + k * w_i)<
 <script type="math/tex; mode=display">
 f_{i,j-v_i} = max(f_{i-1,j-v_i}, f_{i-1,j-2*v_i} + w_i, ..., f_{i-1,j-(k+1) * v_i} + k * w_i)</script><p>推出</p>
 <script type="math/tex; mode=display">
-f_{i, j} = max(f_{i-1, j}, f_{i, j - v_i} + w_i)</script><font color=red>注意，完全背包问题没有物品个数限制，且 $k * v_i <= V$，所以对于$f_{i,j}$，它的k能取到的数字肯定刚好比$f_{i,j-v_i}$ 要多1，因为两者刚好差1.</font>
+f_{i, j} = max(f_{i-1, j}, f_{i, j - v_i} + w_i)</script><font color="red">注意，完全背包问题没有物品个数限制，且 $k * v_i <= v$，所以对于$f_{i,j}$，它的k能取到的数字肯定刚好比$f_{i,j-v_i}$ 要多1，因为两者刚好差1.< font>
 
 <p>代码从三层循环优化为两层循环，太秀了~</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">N</span> <span class="operator">=</span> sc.nextInt(), V = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[][] f = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>][V+<span class="number">1</span>];</span><br><span class="line">        <span class="type">int</span>[] v = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>];</span><br><span class="line">        <span class="type">int</span>[] w = <span class="keyword">new</span> <span class="title class_">int</span>[N+<span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            v[i] = sc.nextInt();</span><br><span class="line">            w[i] = sc.nextInt();</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt;= V; j++) &#123;</span><br><span class="line">                <span class="comment">// 如果没有空间优化，这里必须要把上一层也复制过来之后才可以考虑更新</span></span><br><span class="line">                f[i][j] = f[i-<span class="number">1</span>][j];</span><br><span class="line">                <span class="keyword">if</span> (j &gt;= v[i]) f[i][j] = Math.max(f[i][j], f[i][j - v[i]] + w[i]);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        System.out.print(f[N][V]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -718,12 +718,12 @@ f_{i, j} = max(f_{i-1, j}, f_{i, j - v_i} + w_i)</script><font color=red>注意�
 f_{i,j} = max(f_{i-1,j}, f_{i-1,j-v_i} + w_i, ..., f_{i-1,j-k * v_i} + k * w_i)</script><p>和</p>
 <script type="math/tex; mode=display">
 f_{i,j-v_i} = max(f_{i-1,j-v_i}, f_{i-1,j-2*v_i} + w_i, ..., f_{i-1,j-(k+1) * v_i} + k * w_i)</script><p>就会刚好差一项</p>
-<p><img src="https://gitee.com/luccas/figure-bed/raw/master/1672133144040.png" alt=""></p>
-<font color=red>结论：不能使用表达式推导达到优化的目的</font>
+<p><img src="https://gitee.com/luccas/figure-bed/raw/master/1672133144040.png" alt></p>
+<font color="red">结论：不能使用表达式推导达到优化的目的</font>
 
 
 
-<h4 id="二进制优化"><a href="#二进制优化" class="headerlink" title="二进制优化"></a>二进制优化</h4><font color=red>性质：对于任意一个数 N，我们可以拆成 $1,2,4,...,2^k, N-2^k (2^k < N)$，并可以用这些数凑出从 0 到 N 中的任意一个数</font>
+<h4 id="二进制优化"><a href="#二进制优化" class="headerlink" title="二进制优化"></a>二进制优化</h4><font color="red">性质：对于任意一个数 N，我们可以拆成 $1,2,4,...,2^k, N-2^k (2^k < N)$，并可以用这些数凑出从 0 到 N 中的任意一个数</font>
 
 <p>一开始，我们的目的是，在个数为s的物品中找出其最优取值，使得最终方案得到的价值最大。</p>
 <p>由于上述性质，0-N 之间任何数字都可以由 $1,2,4,…,2^k, N-2^k$ 构成，我称之为解构数。</p>
@@ -760,14 +760,14 @@ f_{i,j-v_i} = max(f_{i-1,j-v_i}, f_{i-1,j-2*v_i} + w_i, ..., f_{i-1,j-(k+1) * v_
 </li>
 <li><p>状态初始化：全为0</p>
 </li>
-<li><font color=red>每次只涉及到 $i$ 与 $i-1$ 层的数组，可以使用滚动数组优化空间复杂度</font>
+<li><font color="red">每次只涉及到 $i$ 与 $i-1$ 层的数组，可以使用滚动数组优化空间复杂度</font>
 </li>
-<li><font color=red>一组中最值的计算放在一起的，所以同一组内物品的遍历需要放在最内层，否则计算的就不是一个集合内的最值</font>
+<li><font color="red">一组中最值的计算放在一起的，所以同一组内物品的遍历需要放在最内层，否则计算的就不是一个集合内的最值</font>
 
 </li>
 </ul>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">sc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">int</span> <span class="variable">N</span> <span class="operator">=</span> sc.nextInt(), V = sc.nextInt();</span><br><span class="line">        <span class="type">int</span>[] f = <span class="keyword">new</span> <span class="title class_">int</span>[V+<span class="number">1</span>];</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= N; i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">s</span> <span class="operator">=</span> sc.nextInt();</span><br><span class="line">            <span class="type">int</span>[] v = <span class="keyword">new</span> <span class="title class_">int</span>[s], w = <span class="keyword">new</span> <span class="title class_">int</span>[s];</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> <span class="number">0</span>; k &lt; s; k++) &#123;</span><br><span class="line">                v[k] = sc.nextInt();</span><br><span class="line">                w[k] = sc.nextInt();</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> V; j &gt;= <span class="number">0</span>; j--) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> <span class="number">0</span>; k &lt; s; k++) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (j &gt;= v[k]) f[j] = Math.max(f[j], f[j - v[k]] + w[k]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.print(f[V]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
+</=></font>]]></content>
       <categories>
         <category>算法</category>
       </categories>
